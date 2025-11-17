@@ -1,0 +1,548 @@
+{{define "admin/system_config.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统配置 - Xinyue</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .admin-layout { display: flex; height: 100vh; }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 250px;
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-menu { flex: 1; overflow-y: auto; }
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .menu-item.active { background: #1890ff; color: #fff; }
+        .menu-group { margin: 10px 0; }
+        .menu-group-title {
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+        }
+        
+        /* 主内容区 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .header-title { font-size: 18px; font-weight: bold; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-info:hover { background: #f0f0f0; }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .config-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: #1890ff; color: #fff; }
+        .btn-primary:hover { background: #40a9ff; }
+        .btn-success { background: #52c41a; color: #fff; }
+        .btn-success:hover { background: #73d13d; }
+        .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; }
+        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* 配置容器 */
+        .config-container { background: #fff; border-radius: 4px; overflow: hidden; }
+        
+        /* 配置项 */
+        .config-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .config-item:last-child { border-bottom: none; }
+        
+        .config-label {
+            width: 200px;
+            flex-shrink: 0;
+            font-weight: 500;
+            color: #333;
+        }
+        .config-label .required {
+            color: #ff4d4f;
+            margin-right: 4px;
+        }
+        
+        .config-input-wrapper {
+            flex: 1;
+            max-width: 600px;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        .config-input:focus { border-color: #1890ff; }
+        
+        textarea.config-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .config-help {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .config-section {
+            background: #fafafa;
+            padding: 12px 20px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        /* SEO预览样式 */
+        .seo-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+        .seo-preview-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .search-result-preview {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .preview-title {
+            color: #1a0dab;
+            font-size: 18px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .preview-title:hover { text-decoration: underline; }
+        .preview-url {
+            color: #006621;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .preview-description {
+            color: #545454;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .footer {
+            height: 50px;
+            background: #fff;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .loading { text-align: center; padding: 40px; color: #999; }
+        
+        .save-bar {
+            background: #fff;
+            padding: 15px 20px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">心悦管理后台</div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <!-- 侧边栏菜单由 admin-sidebar.js 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title">系统配置</div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-default" target="_blank">查看网站</a>
+                    <div class="user-info" onclick="logout()">
+                        <div class="avatar">A</div>
+                        <span>管理员</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="config-wrapper">
+                    <div class="config-container" id="configContainer">
+                        <div class="loading">正在加载配置...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="save-bar">
+                <button class="btn btn-default" onclick="location.reload()">重置</button>
+                <button class="btn btn-success" onclick="saveConfigs()">💾 保存配置</button>
+            </div>
+            
+            <div class="footer">
+                <span>Copyright © 2025 心悦网盘搜索系统. Powered by Go</span>
+                <span id="configCount">加载中...</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let configs = [];
+        
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/admin/login';
+            }
+        }
+        
+        async function loadConfigs() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+                
+                const response = await fetch('/api/admin/configs', { headers: headers });
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    // API返回的数据结构是 {list: [...], total: ...}
+                    configs = result.data.list || [];
+                    renderConfigs();
+                    document.getElementById('configCount').textContent = `共 ${configs.length} 项配置`;
+                } else if (result.code === 401) {
+                    alert('登录已过期，请重新登录');
+                    localStorage.removeItem('admin_token');
+                    window.location.href = '/admin/login';
+                } else {
+                    throw new Error(result.message || '加载失败');
+                }
+            } catch (error) {
+                console.error('加载配置失败:', error);
+                document.getElementById('configContainer').innerHTML = 
+                    '<div class="loading" style="color:#ff4d4f;">加载失败: ' + error.message + '</div>';
+            }
+        }
+        
+        function renderConfigs() {
+            if (configs.length === 0) {
+                document.getElementById('configContainer').innerHTML =
+                    '<div class="loading">暂无配置项</div>';
+                return;
+            }
+            
+            // 过滤只显示基础配置和搜索配置(group=0,1)
+            // group=2(网盘)和group=3(微信)在专门的页面显示
+            const filteredConfigs = configs.filter(item => {
+                const group = item.group || 0;
+                return group === 0 || group === 1;
+            });
+            
+            if (filteredConfigs.length === 0) {
+                document.getElementById('configContainer').innerHTML =
+                    '<div class="loading">暂无基础配置项</div>';
+                return;
+            }
+            
+            // 按group分组
+            const grouped = {};
+            const groupNames = {
+                0: '基础设置',
+                1: 'SEO与搜索设置'
+            };
+            
+            filteredConfigs.forEach(item => {
+                const group = item.group || 0;
+                if (!grouped[group]) {
+                    grouped[group] = [];
+                }
+                grouped[group].push(item);
+            });
+            
+            // 渲染HTML
+            let html = '';
+            Object.keys(grouped).sort((a, b) => parseInt(a) - parseInt(b)).forEach(group => {
+                html += `<div class="config-section">${groupNames[group] || '其他'}</div>`;
+                
+                grouped[group].forEach(item => {
+                    html += renderConfigItem(item);
+                });
+                
+                // 为SEO设置分组添加预览
+                if (group == '1') {
+                    html += renderSEOPreview();
+                }
+            });
+            
+            document.getElementById('configContainer').innerHTML = html;
+            
+            // 为SEO相关输入框添加实时预览监听
+            attachSEOListeners();
+        }
+        
+        function renderSEOPreview() {
+            return `
+                <div class="config-item">
+                    <div class="config-label">搜索预览</div>
+                    <div class="config-input-wrapper">
+                        <div class="seo-preview">
+                            <div class="seo-preview-title">您的网站在搜索引擎中的展示效果：</div>
+                            <div class="search-result-preview">
+                                <div class="preview-title" id="previewTitle">心悦网盘搜索</div>
+                                <div class="preview-url">https://your-domain.com</div>
+                                <div class="preview-description" id="previewDescription">多网盘资源搜索与管理平台</div>
+                            </div>
+                            <div class="config-help">关键词不会在搜索结果中显示，但会影响SEO排名</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function attachSEOListeners() {
+            // 监听网站名称变化
+            const nameInputs = document.querySelectorAll('[data-id]');
+            nameInputs.forEach(input => {
+                const config = configs.find(c => c.conf_id === parseInt(input.dataset.id));
+                if (!config) return;
+                
+                if (config.name === 'site_name') {
+                    input.addEventListener('input', function() {
+                        const title = this.value || '心悦网盘搜索';
+                        document.getElementById('previewTitle').textContent = title;
+                    });
+                    // 初始化
+                    if (input.value) {
+                        document.getElementById('previewTitle').textContent = input.value;
+                    }
+                } else if (config.name === 'site_description') {
+                    input.addEventListener('input', function() {
+                        const desc = this.value || '多网盘资源搜索与管理平台';
+                        document.getElementById('previewDescription').textContent = desc;
+                    });
+                    // 初始化
+                    if (input.value) {
+                        document.getElementById('previewDescription').textContent = input.value;
+                    }
+                }
+            });
+        }
+        
+        function renderConfigItem(item) {
+            const required = item.name.includes('*') ? '<span class="required">*</span>' : '';
+            const title = item.title || item.name;
+            const description = item.description ? `<div class="config-help">${item.description}</div>` : '';
+            
+            let inputHtml = '';
+            
+            // 根据type渲染不同的输入框
+            switch (item.type) {
+                case 2: // 数字
+                    inputHtml = `<input type="number" class="config-input" data-id="${item.conf_id}" value="${item.value || ''}" placeholder="请输入数字">`;
+                    break;
+                case 3: // 布尔
+                    const checked1 = (item.value == '1' || item.value == 'true') ? 'checked' : '';
+                    const checked0 = (!item.value || item.value == '0' || item.value == 'false') ? 'checked' : '';
+                    inputHtml = `
+                        <div>
+                            <label style="margin-right: 20px;">
+                                <input type="radio" name="config_${item.conf_id}" value="1" ${checked1} data-id="${item.conf_id}"> 启用
+                            </label>
+                            <label>
+                                <input type="radio" name="config_${item.conf_id}" value="0" ${checked0} data-id="${item.conf_id}"> 禁用
+                            </label>
+                        </div>
+                    `;
+                    break;
+                case 4: // JSON/文本域
+                    inputHtml = `<textarea class="config-input" data-id="${item.conf_id}" placeholder="请输入内容">${item.value || ''}</textarea>`;
+                    break;
+                default: // 文本
+                    inputHtml = `<input type="text" class="config-input" data-id="${item.conf_id}" value="${item.value || ''}" placeholder="请输入${title}">`;
+            }
+            
+            return `
+                <div class="config-item">
+                    <div class="config-label">${required}${title}</div>
+                    <div class="config-input-wrapper">
+                        ${inputHtml}
+                        ${description}
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function saveConfigs() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('请先登录');
+                    window.location.href = '/admin/login';
+                    return;
+                }
+                
+                // 收集所有配置项的值
+                const updates = [];
+                const inputs = document.querySelectorAll('[data-id]');
+                
+                inputs.forEach(input => {
+                    const confId = parseInt(input.dataset.id);
+                    let value = '';
+                    
+                    if (input.type === 'radio' && input.checked) {
+                        value = input.value;
+                    } else if (input.type !== 'radio') {
+                        value = input.value;
+                    } else {
+                        return; // 跳过未选中的radio
+                    }
+                    
+                    // 查找对应的配置项
+                    const config = configs.find(c => c.conf_id === confId);
+                    if (config && !updates.find(u => u.conf_id === confId)) {
+                        updates.push({
+                            conf_id: confId,
+                            name: config.name,
+                            value: value
+                        });
+                    }
+                });
+                
+                if (updates.length === 0) {
+                    alert('没有需要保存的配置');
+                    return;
+                }
+                
+                // 批量更新
+                const response = await fetch('/api/admin/configs/batch', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ configs: updates })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert('保存成功！');
+                    loadConfigs(); // 重新加载
+                } else if (result.code === 401) {
+                    alert('登录已过期，请重新登录');
+                    localStorage.removeItem('admin_token');
+                    window.location.href = '/admin/login';
+                } else {
+                    throw new Error(result.message || '保存失败');
+                }
+            } catch (error) {
+                console.error('保存配置失败:', error);
+                alert('保存失败: ' + error.message);
+            }
+        }
+        
+        // 页面加载时加载配置
+        loadConfigs();
+    </script>
+    
+    <!-- 引入侧边栏JS -->
+    <script src="/static/admin-sidebar.js"></script>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,694 @@
+{{define "admin/sources_simple.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源管理 - Xinyue</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .admin-layout { display: flex; height: 100vh; }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 250px;
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-menu { flex: 1; overflow-y: auto; }
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .menu-item.active { background: #1890ff; color: #fff; }
+        .menu-group { margin: 10px 0; }
+        .menu-group-title {
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+        }
+        
+        /* 主内容区 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .header-title { font-size: 18px; font-weight: bold; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-info:hover { background: #f0f0f0; }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
+        .toolbar {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: #1890ff; color: #fff; }
+        .btn-primary:hover { background: #40a9ff; }
+        .btn-danger { background: #ff4d4f; color: #fff; }
+        .btn-danger:hover { background: #ff7875; }
+        .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; }
+        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        
+        /* 输入框 */
+        .input {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        .input:focus { border-color: #1890ff; }
+        
+        /* 表格 */
+        .table-container { background: #fff; border-radius: 4px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: #fafafa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+        tr:hover { background: #fafafa; }
+        
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+        .tag-primary { background: #e6f7ff; color: #1890ff; }
+        .tag-success { background: #f6ffed; color: #52c41a; }
+        .tag-warning { background: #fffbe6; color: #faad14; }
+        .tag-danger { background: #fff1f0; color: #ff4d4f; }
+        
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: #fff;
+        }
+        .pagination button {
+            padding: 5px 12px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .pagination button:hover:not(:disabled) { color: #1890ff; border-color: #1890ff; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .footer {
+            height: 50px;
+            background: #fff;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .loading { text-align: center; padding: 40px; color: #999; }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: #fff;
+            border-radius: 4px;
+            width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 16px; font-weight: bold; }
+        .modal-close {
+            cursor: pointer;
+            font-size: 20px;
+            color: #999;
+            border: none;
+            background: none;
+        }
+        .modal-close:hover { color: #333; }
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 10px 20px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-label .required {
+            color: #ff4d4f;
+            margin-right: 4px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-input:focus { border-color: #1890ff; }
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-help {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">心悦管理后台</div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <!-- 侧边栏菜单由 admin-sidebar.js 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title">资源管理</div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-default" target="_blank">查看网站</a>
+                    <div class="user-info" onclick="logout()">
+                        <div class="avatar">A</div>
+                        <span>管理员</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="showAddModal()">➕ 添加资源</button>
+                    <button class="btn btn-danger" id="batchDeleteBtn" onclick="batchDelete()" disabled>🗑️ 批量删除</button>
+                    <input type="text" id="searchKeyword" class="input" placeholder="搜索资源标题" style="width: 300px;">
+                    <select id="searchPanType" class="input" style="width: 150px;">
+                        <option value="-1">全部网盘</option>
+                        <option value="0">夸克网盘</option>
+                        <option value="2">百度网盘</option>
+                        <option value="3">阿里云盘</option>
+                        <option value="4">UC网盘</option>
+                        <option value="5">迅雷网盘</option>
+                    </select>
+                    <button class="btn btn-default" onclick="searchSources()">🔍 搜索</button>
+                    <button class="btn btn-default" onclick="resetSearch()">🔄 重置</button>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                                <th style="width: 80px;">ID</th>
+                                <th>标题</th>
+                                <th style="width: 120px;">网盘类型</th>
+                                <th style="width: 100px;">链接类型</th>
+                                <th style="width: 100px;">状态</th>
+                                <th style="width: 180px;">创建时间</th>
+                                <th style="width: 180px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="8" class="loading">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="pagination">
+                        <button id="prevBtn">上一页</button>
+                        <span>第 <span id="currentPage">1</span> 页 / 共 <span id="totalPages">1</span> 页</span>
+                        <button id="nextBtn">下一页</button>
+                        <span style="margin-left: 20px;">共 <span id="totalCount">0</span> 条</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">Copyright © 2025 心悦网盘搜索系统. Powered by Go</div>
+        </div>
+    </div>
+    
+    <!-- 添加资源弹窗 -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">添加资源</div>
+                <button class="modal-close" onclick="closeAddModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <div class="form-group">
+                        <label class="form-label"><span class="required">*</span>资源标题</label>
+                        <input type="text" name="title" class="form-input" placeholder="请输入资源标题" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><span class="required">*</span>分享链接</label>
+                        <input type="text" name="url" class="form-input" placeholder="请输入网盘分享链接" required>
+                        <div class="form-help">支持夸克、百度、UC、迅雷等网盘链接</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">提取码</label>
+                        <input type="text" name="content" class="form-input" placeholder="如果有提取码请输入">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><span class="required">*</span>网盘类型</label>
+                        <select name="is_type" class="form-input" required>
+                            <option value="">请选择</option>
+                            <option value="0">夸克网盘</option>
+                            <option value="2">百度网盘</option>
+                            <option value="3">阿里云盘</option>
+                            <option value="4">UC网盘</option>
+                            <option value="5">迅雷网盘</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">链接类型</label>
+                        <select name="is_time" class="form-input">
+                            <option value="0">永久链接</option>
+                            <option value="1">临时链接</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeAddModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitAdd()">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = 1;
+        let currentKeyword = '';
+        let currentPanType = -1;
+        
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/admin/login';
+            }
+        }
+        
+        // 搜索功能
+        function searchSources() {
+            currentKeyword = document.getElementById('searchKeyword').value.trim();
+            currentPanType = parseInt(document.getElementById('searchPanType').value);
+            currentPage = 1;
+            loadData();
+        }
+        
+        // 重置搜索
+        function resetSearch() {
+            document.getElementById('searchKeyword').value = '';
+            document.getElementById('searchPanType').value = '-1';
+            currentKeyword = '';
+            currentPanType = -1;
+            currentPage = 1;
+            loadData();
+        }
+        
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            updateBatchDeleteBtn();
+        }
+        
+        // 更新批量删除按钮状态
+        function updateBatchDeleteBtn() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+            const btn = document.getElementById('batchDeleteBtn');
+            btn.disabled = checkboxes.length === 0;
+        }
+        
+        // 批量删除
+        async function batchDelete() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert('请先选择要删除的资源');
+                return;
+            }
+            
+            if (!confirm(`确定要删除选中的 ${checkboxes.length} 个资源吗？`)) {
+                return;
+            }
+            
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            try {
+                const response = await fetch('/api/sources', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                    },
+                    body: JSON.stringify({ ids: ids })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert('删除成功');
+                    document.getElementById('selectAll').checked = false;
+                    loadData();
+                } else {
+                    alert('删除失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+        
+        async function loadData() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+                
+                // 构建查询参数
+                let url = `/api/sources?page=${currentPage}&page_size=20&status=1`;
+                if (currentKeyword) {
+                    url += `&keyword=${encodeURIComponent(currentKeyword)}`;
+                }
+                if (currentPanType >= 0) {
+                    url += `&is_type=${currentPanType}`;
+                }
+                
+                const response = await fetch(url, {
+                    headers: headers
+                });
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const data = result.data;
+                    const list = data.data || [];
+                    const tbody = document.getElementById('tableBody');
+                    
+                    if (list.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">暂无数据</td></tr>';
+                        return;
+                    }
+                    
+                    const panTypeNames = { 0: '夸克', 2: '百度', 3: '阿里', 4: 'UC', 5: '迅雷' };
+                    const panTypeTags = { 0: 'primary', 2: 'success', 3: 'success', 4: 'warning', 5: 'danger' };
+                    
+                    tbody.innerHTML = list.map(item => {
+                        const timeStr = new Date(item.create_time * 1000).toLocaleString('zh-CN');
+                        
+                        return `
+                            <tr>
+                                <td><input type="checkbox" value="${item.source_id}" onchange="updateBatchDeleteBtn()"></td>
+                                <td>${item.source_id}</td>
+                                <td>${item.title}</td>
+                                <td><span class="tag tag-${panTypeTags[item.is_type]}">${panTypeNames[item.is_type] || '未知'}</span></td>
+                                <td><span class="tag tag-${item.is_time ? 'warning' : 'success'}">${item.is_time ? '临时' : '永久'}</span></td>
+                                <td><span class="tag tag-${item.status ? 'success' : 'danger'}">${item.status ? '正常' : '禁用'}</span></td>
+                                <td>${timeStr}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="editSource(${item.source_id})">编辑</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteSource(${item.source_id})">删除</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('totalCount').textContent = data.total || 0;
+                } else if (result.code === 401) {
+                    alert('登录已过期，请重新登录');
+                    localStorage.removeItem('admin_token');
+                    window.location.href = '/admin/login';
+                } else {
+                    alert('加载失败: ' + result.message);
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">加载失败: ' + result.message + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">加载失败: ' + error.message + '</td></tr>';
+            }
+        }
+        
+        // 显示添加资源弹窗
+        function showAddModal() {
+            const modal = document.getElementById('addModal');
+            modal.dataset.editId = '';
+            document.querySelector('.modal-title').textContent = '添加资源';
+            document.getElementById('addForm').reset();
+            modal.classList.add('show');
+        }
+        
+        // 关闭添加资源弹窗
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+        }
+        
+        // 提交添加资源
+        async function submitAdd() {
+            const form = document.getElementById('addForm');
+            const formData = new FormData(form);
+            
+            // 验证必填项
+            const title = formData.get('title');
+            const url = formData.get('url');
+            const is_type = formData.get('is_type');
+            
+            if (!title || !url || !is_type) {
+                alert('请填写必填项');
+                return;
+            }
+            
+            // 构造请求数据
+            const data = {
+                title: title,
+                url: url,
+                content: formData.get('content') || '',
+                is_type: parseInt(is_type),
+                is_time: parseInt(formData.get('is_time')) || 0,
+                status: 1
+            };
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const modal = document.getElementById('addModal');
+                const editId = modal.dataset.editId;
+                
+                // 判断是新增还是编辑
+                const url = editId ? '/api/sources' : '/api/sources';
+                const method = editId ? 'PUT' : 'POST';
+                
+                if (editId) {
+                    data.source_id = parseInt(editId);
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    alert(editId ? '修改成功' : '添加成功');
+                    closeAddModal();
+                    loadData(); // 重新加载列表
+                } else if (result.code === 401) {
+                    alert('登录已过期，请重新登录');
+                    localStorage.removeItem('admin_token');
+                    window.location.href = '/admin/login';
+                } else {
+                    alert((editId ? '修改' : '添加') + '失败: ' + result.message);
+                }
+            } catch (error) {
+                const modal = document.getElementById('addModal');
+                const editId = modal.dataset.editId;
+                console.error((editId ? '修改' : '添加') + '失败:', error);
+                alert((editId ? '修改' : '添加') + '失败: ' + error.message);
+            }
+        }
+        
+        // 点击弹窗外部关闭
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddModal();
+            }
+        });
+        
+        // 编辑资源
+        function editSource(id) {
+            // 获取资源详情
+            fetch('/api/sources/' + id, {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                }
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.code === 200) {
+                    const source = result.data;
+                    // 填充表单
+                    document.querySelector('[name="title"]').value = source.title;
+                    document.querySelector('[name="url"]').value = source.url;
+                    document.querySelector('[name="content"]').value = source.content || '';
+                    document.querySelector('[name="is_type"]').value = source.is_type;
+                    document.querySelector('[name="is_time"]').value = source.is_time;
+                    
+                    // 修改提交按钮行为
+                    const modal = document.getElementById('addModal');
+                    modal.dataset.editId = id;
+                    document.querySelector('.modal-title').textContent = '编辑资源';
+                    modal.classList.add('show');
+                } else {
+                    alert('获取资源信息失败: ' + result.message);
+                }
+            })
+            .catch(error => {
+                alert('获取资源信息失败: ' + error.message);
+            });
+        }
+        
+        // 删除资源
+        function deleteSource(id) {
+            if (!confirm('确定要删除这个资源吗？')) {
+                return;
+            }
+            
+            fetch('/api/sources', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                },
+                body: JSON.stringify({ ids: [id] })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.code === 200) {
+                    alert('删除成功');
+                    loadData();
+                } else {
+                    alert('删除失败: ' + result.message);
+                }
+            })
+            .catch(error => {
+                alert('删除失败: ' + error.message);
+            });
+        }
+        
+        loadData();
+    </script>
+    
+    <!-- 引入侧边栏JS -->
+    <script src="/static/admin-sidebar.js"></script>
+</body>
+</html>
+{{end}}

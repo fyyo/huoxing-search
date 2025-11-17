@@ -1,0 +1,693 @@
+{{define "admin/netdisk_config.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Xinyue管理后台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 250px;
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-menu { flex: 1; overflow-y: auto; }
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .menu-item.active { background: #1890ff; color: #fff; }
+        .menu-group { margin: 10px 0; }
+        .menu-group-title {
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+        }
+
+        /* 主内容区 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .header-title { font-size: 18px; font-weight: bold; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-info:hover { background: #f0f0f0; }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 24px;
+            flex: 1;
+        }
+
+        .page-header {
+            background: white;
+            padding: 16px 24px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .netdisk-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: white;
+            padding: 16px 24px 0;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .tab:hover {
+            background: #e6e6e6;
+        }
+
+        .tab.active {
+            background: white;
+            color: #1890ff;
+            font-weight: 500;
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 0 4px 4px 4px;
+            padding: 24px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-label .required {
+            color: #ff4d4f;
+            margin-right: 4px;
+        }
+
+        .form-help {
+            color: #999;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            border-color: #1890ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+        }
+
+        .btn-default {
+            background: white;
+            color: #333;
+            border: 1px solid #d9d9d9;
+        }
+
+        .btn-default:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+
+        .alert-error {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+
+        .info-box {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #0050b3;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .status-ok {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-error {
+            background: #fff2f0;
+            color: #ff4d4f;
+            border: 1px solid #ffccc7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">心悦管理后台</div>
+            <!-- 使用统一的动态侧边栏 -->
+            <div class="sidebar-menu" id="sidebarMenu"></div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title">网盘配置</div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-default" target="_blank">查看网站</a>
+                    <div class="user-info" onclick="logout()">
+                        <div class="avatar">A</div>
+                        <span>管理员</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="page-header">
+                    <h1 class="page-title">网盘配置</h1>
+                    <div class="page-description">配置各网盘的Cookie和Token信息，用于转存功能</div>
+                </div>
+
+                <div id="alert" class="alert"></div>
+
+                <div class="info-box">
+                    <strong>⚠️ 配置说明：</strong>
+                    所有配置信息将加密存储在数据库中。请定期更新Cookie和Token以保持功能正常运行。
+                </div>
+
+                <div class="netdisk-tabs">
+                    <div class="tab active" data-tab="quark">夸克网盘</div>
+                    <div class="tab" data-tab="baidu">百度网盘</div>
+                    <div class="tab" data-tab="aliyun">阿里云盘</div>
+                    <div class="tab" data-tab="uc">UC网盘</div>
+                    <div class="tab" data-tab="xunlei">迅雷网盘</div>
+                    <div class="tab" data-tab="common">通用设置</div>
+                </div>
+
+                <div class="config-card">
+                    <!-- 夸克网盘 -->
+                    <div class="tab-content active" id="quark">
+                        <h3>夸克网盘配置 <span class="status-badge status-ok" id="quark_status">未配置</span></h3>
+                        <form id="quarkForm" onsubmit="return saveBatchConfigs('quark', event)">
+                            <div class="form-group">
+                                <label class="form-label"><span class="required">*</span>Cookie</label>
+                                <textarea class="form-textarea" id="quark_cookie" name="quark_cookie" placeholder="请输入夸克网盘的Cookie"></textarea>
+                                <div class="form-help">从浏览器开发者工具的Network面板中获取Cookie</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">默认存储文件夹ID</label>
+                                <input type="text" class="form-input" id="quark_file" name="quark_file" placeholder="例如: 0 (根目录)">
+                                <div class="form-help">转存资源默认保存的文件夹ID，0表示根目录</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">临时资源文件夹ID</label>
+                                <input type="text" class="form-input" id="quark_file_time" name="quark_file_time" placeholder="例如: 0">
+                                <div class="form-help">临时有效期资源的存储文件夹ID</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">广告过滤关键词</label>
+                                <input type="text" class="form-input" id="quark_banned" name="quark_banned" placeholder="例如: 广告,推广,赞助 (逗号分隔)">
+                                <div class="form-help">转存后自动删除包含这些关键词的文件，多个关键词用逗号分隔</div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">保存配置</button>
+                                <button type="button" class="btn btn-default" onclick="testConnection('quark')">测试连接</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 百度网盘 -->
+                    <div class="tab-content" id="baidu">
+                        <h3>百度网盘配置 <span class="status-badge status-ok" id="baidu_status">未配置</span></h3>
+                        <form id="baiduForm" onsubmit="return saveBatchConfigs('baidu', event)">
+                            <div class="form-group">
+                                <label class="form-label"><span class="required">*</span>Cookie</label>
+                                <textarea class="form-textarea" id="baidu_cookie" name="baidu_cookie" placeholder="请输入百度网盘的Cookie"></textarea>
+                                <div class="form-help">登录百度网盘后从浏览器获取BDUSS等信息</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">默认存储路径</label>
+                                <input type="text" class="form-input" id="baidu_file" name="baidu_file" placeholder="例如: /默认转存文件">
+                                <div class="form-help">转存资源默认保存的文件夹路径，例如 /默认转存文件</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">临时资源路径</label>
+                                <input type="text" class="form-input" id="baidu_file_time" name="baidu_file_time" placeholder="例如: /临时资源">
+                                <div class="form-help">临时有效期资源的存储文件夹路径</div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">保存配置</button>
+                                <button type="button" class="btn btn-default" onclick="testConnection('baidu')">测试连接</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 阿里云盘 -->
+                    <div class="tab-content" id="aliyun">
+                        <h3>阿里云盘配置 <span class="status-badge status-ok" id="aliyun_status">未配置</span></h3>
+                        <form id="aliyunForm" onsubmit="return saveBatchConfigs('aliyun', event)">
+                            <div class="form-group">
+                                <label class="form-label"><span class="required">*</span>Refresh Token</label>
+                                <textarea class="form-textarea" id="aliyun_token" name="Authorization" placeholder="请输入阿里云盘的Refresh Token"></textarea>
+                                <div class="form-help">通过阿里云盘开放平台获取或从浏览器中提取</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">默认存储文件夹ID</label>
+                                <input type="text" class="form-input" id="ali_file" name="ali_file" placeholder="例如: root">
+                                <div class="form-help">转存资源默认保存的文件夹ID，root表示根目录</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">临时资源文件夹ID</label>
+                                <input type="text" class="form-input" id="ali_file_time" name="ali_file_time" placeholder="例如: root">
+                                <div class="form-help">临时有效期资源的存储文件夹ID</div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">保存配置</button>
+                                <button type="button" class="btn btn-default" onclick="testConnection('aliyun')">测试连接</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- UC网盘 -->
+                    <div class="tab-content" id="uc">
+                        <h3>UC网盘配置 <span class="status-badge status-ok" id="uc_status">未配置</span></h3>
+                        <form id="ucForm" onsubmit="return saveBatchConfigs('uc', event)">
+                            <div class="form-group">
+                                <label class="form-label"><span class="required">*</span>Cookie</label>
+                                <textarea class="form-textarea" id="uc_cookie" name="uc_cookie" placeholder="请输入UC网盘的Cookie"></textarea>
+                                <div class="form-help">从UC网盘网页版获取Cookie信息</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">默认存储文件夹ID</label>
+                                <input type="text" class="form-input" id="uc_file" name="uc_file" placeholder="例如: 0">
+                                <div class="form-help">转存资源默认保存的文件夹ID，0表示根目录</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">临时资源文件夹ID</label>
+                                <input type="text" class="form-input" id="uc_file_time" name="uc_file_time" placeholder="例如: 0">
+                                <div class="form-help">临时有效期资源的存储文件夹ID</div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">保存配置</button>
+                                <button type="button" class="btn btn-default" onclick="testConnection('uc')">测试连接</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 迅雷网盘 -->
+                    <div class="tab-content" id="xunlei">
+                        <h3>迅雷网盘配置 <span class="status-badge status-ok" id="xunlei_status">未配置</span></h3>
+                        <form id="xunleiForm" onsubmit="return saveBatchConfigs('xunlei', event)">
+                            <div class="form-group">
+                                <label class="form-label"><span class="required">*</span>Refresh Token</label>
+                                <textarea class="form-textarea" id="xunlei_cookie" name="xunlei_cookie" placeholder="请输入迅雷网盘的Refresh Token"></textarea>
+                                <div class="form-help">从迅雷网盘获取Refresh Token</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">默认存储文件夹ID</label>
+                                <input type="text" class="form-input" id="xunlei_file" name="xunlei_file" placeholder="留空表示根目录">
+                                <div class="form-help">转存资源默认保存的文件夹ID，留空表示根目录</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">临时资源文件夹ID</label>
+                                <input type="text" class="form-input" id="xunlei_file_time" name="xunlei_file_time" placeholder="留空表示根目录">
+                                <div class="form-help">临时有效期资源的存储文件夹ID</div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">保存配置</button>
+                                <button type="button" class="btn btn-default" onclick="testConnection('xunlei')">测试连接</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 通用设置 -->
+                    <div class="tab-content" id="common">
+                        <h3>通用设置</h3>
+                        <form id="commonForm" onsubmit="return saveBatchConfigs('common', event)">
+                            <div class="form-group">
+                                <label class="form-label">清理网盘文件</label>
+                                <div>
+                                    <label style="margin-right: 20px;">
+                                        <input type="radio" name="delete_netdisk_files" value="0" checked id="delete_netdisk_files_0"> 仅删除数据库记录
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="delete_netdisk_files" value="1" id="delete_netdisk_files_1"> 同时删除网盘文件
+                                    </label>
+                                </div>
+                                <div class="form-help">清理临时资源时的行为：仅删除数据库记录（不清理网盘文件），或同时删除网盘中的临时文件目录</div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">保存配置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetTab = this.dataset.tab;
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // 页面加载时获取所有配置
+        window.onload = function() {
+            loadAllConfigs();
+        };
+
+        // 加载所有配置
+        async function loadAllConfigs() {
+            const configs = [
+                'quark_cookie', 'quark_file', 'quark_file_time', 'quark_banned',
+                'baidu_cookie', 'baidu_file', 'baidu_file_time',
+                'Authorization', 'ali_file', 'ali_file_time',
+                'uc_cookie', 'uc_file', 'uc_file_time',
+                'xunlei_cookie', 'xunlei_file', 'xunlei_file_time',
+                'delete_netdisk_files'
+            ];
+            
+            for (const configName of configs) {
+                await loadConfig(configName);
+            }
+        }
+
+        // 加载单个配置
+        async function loadConfig(configName) {
+            try {
+                const response = await fetch(`/api/admin/configs/name/${configName}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.code === 200 && result.data) {
+                        const element = document.getElementById(configName);
+                        if (element) {
+                            // 处理单选按钮
+                            if (configName === 'delete_netdisk_files') {
+                                const value = result.data.value || '0';
+                                const radio = document.getElementById(configName + '_' + value);
+                                if (radio) radio.checked = true;
+                            } else {
+                                element.value = result.data.value || '';
+                            }
+                            
+                            // 更新状态标签
+                            const netdisk = configName.split('_')[0];
+                            const statusEl = document.getElementById(netdisk + '_status');
+                            if (statusEl && result.data.value) {
+                                statusEl.textContent = '已配置';
+                                statusEl.className = 'status-badge status-ok';
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+        }
+
+        // 批量保存配置
+        async function saveBatchConfigs(netdisk, event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const configs = [];
+
+            // 收集所有配置项
+            for (let [name, value] of formData.entries()) {
+                configs.push({
+                    name: name,
+                    value: value.trim()
+                });
+            }
+
+            try {
+                // 批量保存
+                for (const config of configs) {
+                    const response = await fetch('/api/admin/configs/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                        },
+                        body: JSON.stringify(config)
+                    });
+
+                    const result = await response.json();
+                    if (result.code !== 200) {
+                        showAlert('error', `保存 ${config.name} 失败: ` + (result.message || '未知错误'));
+                        return false;
+                    }
+                }
+
+                showAlert('success', '保存成功！');
+                
+                // 更新状态
+                const statusEl = document.getElementById(netdisk + '_status');
+                const mainConfigName = configs[0].name; // 第一个配置项（Cookie/Token）
+                if (configs[0].value) {
+                    statusEl.textContent = '已配置';
+                    statusEl.className = 'status-badge status-ok';
+                } else {
+                    statusEl.textContent = '未配置';
+                    statusEl.className = 'status-badge status-error';
+                }
+            } catch (error) {
+                showAlert('error', '保存失败: ' + error.message);
+            }
+
+            return false;
+        }
+
+        // 测试连接
+        async function testConnection(netdisk) {
+            // 网盘名称映射
+            const netdiskNames = {
+                'quark': '夸克网盘',
+                'baidu': '百度网盘',
+                'aliyun': '阿里云盘',
+                'uc': 'UC网盘',
+                'xunlei': '迅雷网盘'
+            };
+            
+            const netdiskName = netdiskNames[netdisk] || netdisk;
+            
+            try {
+                showAlert('success', `正在测试${netdiskName}连接...`);
+                
+                const response = await fetch('/api/admin/test/netdisk', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                    },
+                    body: JSON.stringify({
+                        netdisk: netdisk
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showAlert('success', result.message || `${netdiskName}连接测试成功！`);
+                } else {
+                    showAlert('error', result.message || `${netdiskName}连接测试失败`);
+                }
+            } catch (error) {
+                showAlert('error', `测试失败: ${error.message}`);
+            }
+        }
+
+        // 显示提示信息
+        function showAlert(type, message) {
+            const alert = document.getElementById('alert');
+            alert.className = 'alert alert-' + type;
+            alert.textContent = message;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/admin/login';
+            }
+        }
+    </script>
+    
+    <!-- 引入侧边栏JS -->
+    <script src="/static/admin-sidebar.js"></script>
+</body>
+</html>
+{{end}}

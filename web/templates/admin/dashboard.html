@@ -1,0 +1,420 @@
+{{define "admin/dashboard.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - Xinyue</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .admin-layout { display: flex; height: 100vh; }
+        
+        /* 侧边栏 */
+        .sidebar {
+            width: 250px;
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+        }
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .menu-item.active {
+            background: #1890ff;
+            color: #fff;
+        }
+        .menu-group {
+            margin: 10px 0;
+        }
+        .menu-group-title {
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* 头部 */
+        .header {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-info:hover {
+            background: #f0f0f0;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* 内容区 */
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* 卡片 */
+        .card {
+            background: #fff;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 4px;
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            border-left: 3px solid #1890ff;
+        }
+        .stat-card.green { border-left-color: #52c41a; }
+        .stat-card.orange { border-left-color: #faad14; }
+        .stat-card.red { border-left-color: #f5222d; }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* 按钮 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #1890ff;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #40a9ff;
+        }
+        .btn-default {
+            background: #fff;
+            color: #333;
+            border: 1px solid #d9d9d9;
+        }
+        .btn-default:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+        
+        /* 快捷操作 */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .quick-action {
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+        .quick-action:hover {
+            background: #e6f7ff;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .quick-action-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .quick-action-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .quick-action-desc {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 页脚 */
+        .footer {
+            height: 50px;
+            background: #fff;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">心悦管理后台</div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <!-- 侧边栏菜单由 admin-sidebar.js 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="header-title">控制台</div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-default" target="_blank">查看网站</a>
+                    <div class="user-info" onclick="showUserMenu(event)">
+                        <div class="avatar">A</div>
+                        <span>管理员</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 内容区 -->
+            <div class="content">
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">总资源数</div>
+                        <div class="stat-value" id="totalSources">0</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">今日新增</div>
+                        <div class="stat-value" id="todaySources">0</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-label">总用户数</div>
+                        <div class="stat-value" id="totalUsers">0</div>
+                    </div>
+                    <div class="stat-card red">
+                        <div class="stat-label">今日搜索</div>
+                        <div class="stat-value" id="todaySearches">0</div>
+                    </div>
+                </div>
+                
+                <!-- 快捷操作 -->
+                <div class="card">
+                    <div class="card-title">快捷操作</div>
+                    <div class="quick-actions">
+                        <a href="/admin/source/list" class="quick-action">
+                            <div class="quick-action-icon">📁</div>
+                            <div class="quick-action-title">资源管理</div>
+                            <div class="quick-action-desc">管理网盘资源</div>
+                        </a>
+                        <a href="/admin/source/import" class="quick-action">
+                            <div class="quick-action-icon">📤</div>
+                            <div class="quick-action-title">批量导入</div>
+                            <div class="quick-action-desc">导入资源链接</div>
+                        </a>
+                        <a href="/admin/search/api" class="quick-action">
+                            <div class="quick-action-icon">🔗</div>
+                            <div class="quick-action-title">搜索线路</div>
+                            <div class="quick-action-desc">配置搜索接口</div>
+                        </a>
+                        <a href="/admin/system/config" class="quick-action">
+                            <div class="quick-action-icon">⚙️</div>
+                            <div class="quick-action-title">系统设置</div>
+                            <div class="quick-action-desc">配置系统参数</div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 系统信息 -->
+                <div class="card">
+                    <div class="card-title">系统信息</div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px 0; color: #666;">系统版本</td>
+                            <td style="padding: 12px 0;">Xinyue-Go v1.0.0</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px 0; color: #666;">Go 版本</td>
+                            <td style="padding: 12px 0;">1.21+</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px 0; color: #666;">数据库</td>
+                            <td style="padding: 12px 0;">MySQL 8.0</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px 0; color: #666;">服务器时间</td>
+                            <td style="padding: 12px 0;" id="serverTime">-</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 页脚 -->
+            <div class="footer">
+                Copyright © 2025 心悦网盘搜索系统. Powered by Go
+            </div>
+        </div>
+    </div>
+    
+    <!-- 引入侧边栏JS -->
+    <script src="/static/admin-sidebar.js"></script>
+    
+    <script>
+        // 更新服务器时间
+        function updateTime() {
+            document.getElementById('serverTime').textContent = new Date().toLocaleString('zh-CN');
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // 格式化数字（添加千位分隔符）
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        // 加载统计数据
+        async function loadStats() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+                
+                const response = await fetch('/api/admin/stats/dashboard', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('admin_token');
+                        window.location.href = '/admin/login';
+                        return;
+                    }
+                    throw new Error('获取统计数据失败');
+                }
+                
+                const result = await response.json();
+                
+                if (result.code === 200 && result.data) {
+                    const data = result.data;
+                    document.getElementById('totalSources').textContent = formatNumber(data.total_sources || 0);
+                    document.getElementById('todaySources').textContent = formatNumber(data.today_sources || 0);
+                    document.getElementById('totalUsers').textContent = formatNumber(data.total_users || 0);
+                    document.getElementById('todaySearches').textContent = formatNumber(data.today_searches || 0);
+                } else {
+                    console.error('统计数据格式错误:', result);
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+                // 显示默认值
+                document.getElementById('totalSources').textContent = '0';
+                document.getElementById('todaySources').textContent = '0';
+                document.getElementById('totalUsers').textContent = '0';
+                document.getElementById('todaySearches').textContent = '0';
+            }
+        }
+        loadStats();
+        
+        // 用户菜单
+        function showUserMenu(event) {
+            event.stopPropagation();
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/admin/login';
+            }
+        }
+    </script>
+</body>
+</html>
+{{end}}

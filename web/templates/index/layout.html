@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Xinyue 网盘搜索</title>
+    <meta name="keywords" content="网盘搜索,资源搜索,夸克网盘,百度网盘">
+    <meta name="description" content="Xinyue网盘搜索 - 聚合多个网盘搜索引擎">
+    
+    <!-- Element Plus CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="container">
+                <div class="logo">
+                    <a href="/">
+                        <h1>Xinyue 网盘搜索</h1>
+                    </a>
+                </div>
+                <nav class="nav">
+                    <a href="/">首页</a>
+                    <a href="/search">搜索</a>
+                    <a href="/admin" target="_blank">管理后台</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            {{template "content" .}}
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2025 Xinyue 网盘搜索. All rights reserved.</p>
+                <p>本站仅提供搜索服务，不存储任何资源</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- 自定义脚本 -->
+    <script src="/static/js/common.js"></script>
+    {{template "scripts" .}}
+</body>
+</html>

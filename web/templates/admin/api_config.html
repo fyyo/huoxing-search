@@ -1,0 +1,612 @@
+{{define "admin/api_config.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索线路配置 - Xinyue</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .admin-layout { display: flex; height: 100vh; }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 250px;
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-menu { flex: 1; overflow-y: auto; }
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .menu-item.active { background: #1890ff; color: #fff; }
+        .menu-group { margin: 10px 0; }
+        .menu-group-title {
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+        }
+        
+        /* 主内容区 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .header-title { font-size: 18px; font-weight: bold; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-info:hover { background: #f0f0f0; }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
+        .toolbar {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: #1890ff; color: #fff; }
+        .btn-primary:hover { background: #40a9ff; }
+        .btn-danger { background: #ff4d4f; color: #fff; }
+        .btn-danger:hover { background: #ff7875; }
+        .btn-success { background: #52c41a; color: #fff; }
+        .btn-success:hover { background: #73d13d; }
+        .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; }
+        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        
+        /* 表格 */
+        .table-container { background: #fff; border-radius: 4px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: #fafafa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+        tr:hover { background: #fafafa; }
+        
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+        .tag-primary { background: #e6f7ff; color: #1890ff; }
+        .tag-success { background: #f6ffed; color: #52c41a; }
+        .tag-danger { background: #fff1f0; color: #ff4d4f; }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: #fff;
+        }
+        .pagination button {
+            padding: 5px 12px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .pagination button:hover:not(:disabled) { color: #1890ff; border-color: #1890ff; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .footer {
+            height: 50px;
+            background: #fff;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .loading { text-align: center; padding: 40px; color: #999; }
+        
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: #fff;
+            border-radius: 4px;
+            width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 16px; font-weight: bold; }
+        .modal-close {
+            cursor: pointer;
+            font-size: 20px;
+            color: #999;
+            border: none;
+            background: none;
+        }
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 10px 20px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #1890ff; }
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">心悦管理后台</div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <!-- 侧边栏菜单由 admin-sidebar.js 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title">搜索线路配置</div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-default" target="_blank">查看网站</a>
+                    <div class="user-info" onclick="logout()">
+                        <div class="avatar">A</div>
+                        <span>管理员</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="showAddModal()">➕ 添加线路</button>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">ID</th>
+                                <th>线路名称</th>
+                                <th style="width: 100px;">类型</th>
+                                <th style="width: 100px;">网盘类型</th>
+                                <th>URL</th>
+                                <th style="width: 80px;">权重</th>
+                                <th style="width: 80px;">资源数</th>
+                                <th style="width: 100px;">状态</th>
+                                <th style="width: 200px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="9" class="loading">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="pagination">
+                        <button id="prevBtn" onclick="changePage(-1)">上一页</button>
+                        <span>第 <span id="currentPage">1</span> 页 / 共 <span id="totalPages">1</span> 页</span>
+                        <button id="nextBtn" onclick="changePage(1)">下一页</button>
+                        <span style="margin-left: 20px;">共 <span id="totalCount">0</span> 条</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">Copyright © 2025 心悦网盘搜索系统. Powered by Go</div>
+        </div>
+    </div>
+    
+    <!-- 添加/编辑弹窗 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">添加线路</div>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editId">
+                    <div class="form-group">
+                        <label class="form-label">线路名称 *</label>
+                        <input type="text" class="form-input" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">类型 *</label>
+                        <select class="form-select" id="editType">
+                            <option value="api">API接口</option>
+                            <option value="html">网页爬虫</option>
+                            <option value="tg">TG频道</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">网盘类型 *</label>
+                        <select class="form-select" id="editPanType">
+                            <option value="0">夸克网盘</option>
+                            <option value="2">百度网盘</option>
+                            <option value="3">阿里云盘</option>
+                            <option value="4">UC网盘</option>
+                            <option value="5">迅雷网盘</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">请求地址 *</label>
+                        <input type="text" class="form-input" id="editURL" placeholder="https://api.example.com/search">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">请求方式</label>
+                        <select class="form-select" id="editMethod">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">固定参数 (JSON格式)</label>
+                        <textarea class="form-textarea" id="editFixedParams" placeholder='{"key": "value"}'></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">请求头 (JSON格式)</label>
+                        <textarea class="form-textarea" id="editHeaders" placeholder='{"Content-Type": "application/json"}'></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">字段映射 (JSON格式)</label>
+                        <textarea class="form-textarea" id="editFieldMap" placeholder='{"title": "name", "url": "link"}'></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">最大资源数</label>
+                        <input type="number" class="form-input" id="editCount" value="10" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">权重 (数值越大优先级越高)</label>
+                        <input type="number" class="form-input" id="editWeight" value="50" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">状态</label>
+                        <select class="form-select" id="editStatus">
+                            <option value="1">启用</option>
+                            <option value="0">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveApi()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = 1;
+        const pageSize = 20;
+        
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/admin/login';
+            }
+        }
+        
+        async function loadData() {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/apis?page=' + currentPage + '&page_size=' + pageSize, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const data = result.data;
+                    const list = data.list || [];
+                    const tbody = document.getElementById('tableBody');
+                    
+                    if (list.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#999;">暂无数据</td></tr>';
+                        document.getElementById('totalCount').textContent = '0';
+                        return;
+                    }
+                    
+                    const typeMap = { 'api': 'API接口', 'html': '网页爬虫', 'tg': 'TG频道' };
+                    const panTypeMap = { 0: '夸克', 2: '百度', 3: '阿里', 4: 'UC', 5: '迅雷' };
+                    
+                    tbody.innerHTML = list.map(item => {
+                        const shortUrl = item.url.length > 30 ? item.url.substring(0, 30) + '...' : item.url;
+                        return '<tr>' +
+                            '<td>' + item.id + '</td>' +
+                            '<td>' + item.name + '</td>' +
+                            '<td><span class="tag tag-primary">' + (typeMap[item.type] || item.type) + '</span></td>' +
+                            '<td><span class="tag tag-primary">' + (panTypeMap[item.pantype] || item.pantype) + '</span></td>' +
+                            '<td title="' + item.url + '">' + shortUrl + '</td>' +
+                            '<td>' + item.weight + '</td>' +
+                            '<td>' + item.count + '</td>' +
+                            '<td><span class="tag tag-' + (item.status === 1 ? 'success' : 'danger') + '">' + (item.status === 1 ? '启用' : '禁用') + '</span></td>' +
+                            '<td>' +
+                                '<button class="btn btn-primary btn-sm" onclick="editApi(' + item.id + ')">编辑</button> ' +
+                                '<button class="btn btn-' + (item.status === 1 ? 'danger' : 'success') + ' btn-sm" onclick="toggleStatus(' + item.id + ',' + (item.status === 1 ? 0 : 1) + ')">' + (item.status === 1 ? '禁用' : '启用') + '</button> ' +
+                                '<button class="btn btn-danger btn-sm" onclick="deleteApi(' + item.id + ')">删除</button>' +
+                            '</td>' +
+                        '</tr>';
+                    }).join('');
+                    
+                    const total = data.total || 0;
+                    const totalPages = Math.ceil(total / pageSize);
+                    document.getElementById('totalCount').textContent = total;
+                    document.getElementById('currentPage').textContent = currentPage;
+                    document.getElementById('totalPages').textContent = totalPages;
+                    document.getElementById('prevBtn').disabled = currentPage === 1;
+                    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+                } else {
+                    alert('加载失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('加载失败:', error);
+                alert('加载失败: ' + error.message);
+            }
+        }
+        
+        function changePage(delta) {
+            const totalPages = parseInt(document.getElementById('totalPages').textContent);
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                loadData();
+            }
+        }
+        
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = '添加线路';
+            document.getElementById('editForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('editModal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+        
+        async function editApi(id) {
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/apis/' + id, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const data = result.data;
+                    document.getElementById('modalTitle').textContent = '编辑线路';
+                    document.getElementById('editId').value = data.id;
+                    document.getElementById('editName').value = data.name;
+                    document.getElementById('editType').value = data.type;
+                    document.getElementById('editPanType').value = data.pantype;
+                    document.getElementById('editURL').value = data.url;
+                    document.getElementById('editMethod').value = data.method;
+                    document.getElementById('editFixedParams').value = data.fixed_params || '';
+                    document.getElementById('editHeaders').value = data.headers || '';
+                    document.getElementById('editFieldMap').value = data.field_map || '';
+                    document.getElementById('editCount').value = data.count;
+                    document.getElementById('editWeight').value = data.weight;
+                    document.getElementById('editStatus').value = data.status;
+                    document.getElementById('editModal').classList.add('show');
+                } else {
+                    alert('获取信息失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('获取信息失败: ' + error.message);
+            }
+        }
+        
+        async function saveApi() {
+            const id = document.getElementById('editId').value;
+            const data = {
+                name: document.getElementById('editName').value,
+                type: document.getElementById('editType').value,
+                pantype: parseInt(document.getElementById('editPanType').value),
+                url: document.getElementById('editURL').value,
+                method: document.getElementById('editMethod').value,
+                fixed_params: document.getElementById('editFixedParams').value,
+                headers: document.getElementById('editHeaders').value,
+                field_map: document.getElementById('editFieldMap').value,
+                count: parseInt(document.getElementById('editCount').value),
+                weight: parseInt(document.getElementById('editWeight').value),
+                status: parseInt(document.getElementById('editStatus').value)
+            };
+            
+            if (!data.name || !data.url) {
+                alert('请填写必填项');
+                return;
+            }
+            
+            if (id) {
+                data.id = parseInt(id);
+            }
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const url = id ? '/api/admin/apis/update' : '/api/admin/apis/create';
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    alert(id ? '修改成功' : '添加成功');
+                    closeModal();
+                    loadData();
+                } else {
+                    alert((id ? '修改' : '添加') + '失败: ' + result.message);
+                }
+            } catch (error) {
+                alert((id ? '修改' : '添加') + '失败: ' + error.message);
+            }
+        }
+        
+        async function toggleStatus(id, status) {
+            if (!confirm('确定要' + (status === 1 ? '启用' : '禁用') + '该线路吗？')) return;
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/apis/status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ id, status })
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    alert('操作成功');
+                    loadData();
+                } else {
+                    alert('操作失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('操作失败: ' + error.message);
+            }
+        }
+        
+        async function deleteApi(id) {
+            if (!confirm('确定要删除该线路吗？')) return;
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/apis/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ ids: [id] })
+                });
+                
+                const result = await response.json();
+                if (result.code === 200) {
+                    alert('删除成功');
+                    loadData();
+                } else {
+                    alert('删除失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+        
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        
+        loadData();
+    </script>
+    
+    <!-- 引入侧边栏JS -->
+    <script src="/static/admin-sidebar.js"></script>
+</body>
+</html>
+{{end}}

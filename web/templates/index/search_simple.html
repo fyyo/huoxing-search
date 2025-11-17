@@ -1,0 +1,359 @@
+{{define "index/search_simple.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Keyword}} - 搜索结果</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 24px; font-weight: 700; color: #667eea; }
+        .nav a {
+            margin-left: 30px;
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .nav a:hover { color: #667eea; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: #667eea;
+        }
+        .search-btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .search-btn:hover {
+            opacity: 0.9;
+        }
+        .pan-types {
+            display: flex;
+            gap: 15px;
+        }
+        .pan-types label {
+            cursor: pointer;
+        }
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .result-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .result-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        .result-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-success {
+            background: #52c41a;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .footer {
+            text-align: center;
+            color: #999;
+            padding: 30px 0;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="logo">心悦网盘搜索</div>
+            <nav class="nav">
+                <a href="/">首页</a>
+                <a href="/search">搜索</a>
+                <a href="/admin/login">管理后台</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <form class="search-form" action="/search" method="get" onsubmit="return handleSearch()">
+                <input 
+                    type="text" 
+                    name="keyword" 
+                    class="search-input" 
+                    placeholder="请输入搜索关键词..." 
+                    value="{{.Keyword}}"
+                    required
+                    id="searchInput"
+                >
+                <button type="submit" class="search-btn" id="searchBtn">搜索</button>
+            </form>
+            <div class="pan-types">
+                <label>
+                    <input type="radio" name="pan_type" value="0" {{if eq .PanType "0"}}checked{{end}}> 夸克网盘
+                </label>
+                <label>
+                    <input type="radio" name="pan_type" value="2" {{if eq .PanType "2"}}checked{{end}}> 百度网盘
+                </label>
+                <label>
+                    <input type="radio" name="pan_type" value="3" {{if eq .PanType "3"}}checked{{end}}> 阿里云盘
+                </label>
+                <label>
+                    <input type="radio" name="pan_type" value="4" {{if eq .PanType "4"}}checked{{end}}> UC网盘
+                </label>
+                <label>
+                    <input type="radio" name="pan_type" value="5" {{if eq .PanType "5"}}checked{{end}}> 迅雷网盘
+                </label>
+            </div>
+        </div>
+
+        <div class="results">
+            <div id="results-container">
+                {{if .Keyword}}
+                <div class="loading">🔍 正在搜索中...</div>
+                {{else}}
+                <div class="empty">
+                    <div class="empty-icon">🔎</div>
+                    <p>请输入关键词开始搜索</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 心悦网盘搜索. All rights reserved.</p>
+        <p>本站仅提供搜索服务，不存储任何资源</p>
+    </div>
+
+    <script>
+        // 搜索处理
+        function handleSearch() {
+            const keyword = document.getElementById('searchInput').value;
+            const panType = document.querySelector('input[name="pan_type"]:checked').value;
+            
+            if (!keyword.trim()) {
+                alert('请输入搜索关键词');
+                return false;
+            }
+            
+            // 显示加载状态
+            document.getElementById('results-container').innerHTML = '<div class="loading">🔍 正在搜索中...</div>';
+            document.getElementById('searchBtn').disabled = true;
+            document.getElementById('searchBtn').textContent = '搜索中...';
+            
+            // 调用搜索API
+            fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    keyword: keyword,
+                    pan_type: parseInt(panType),
+                    max_count: 20
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200 && data.data && data.data.results) {
+                    displayResults(data.data.results);
+                } else {
+                    displayEmpty(data.message || '搜索失败');
+                }
+            })
+            .catch(error => {
+                console.error('搜索错误:', error);
+                displayEmpty('搜索失败，请稍后重试');
+            })
+            .finally(() => {
+                document.getElementById('searchBtn').disabled = false;
+                document.getElementById('searchBtn').textContent = '搜索';
+            });
+            
+            return false;
+        }
+        
+        // 显示搜索结果
+        function displayResults(results) {
+            const container = document.getElementById('results-container');
+            if (results.length === 0) {
+                displayEmpty('未找到相关资源');
+                return;
+            }
+            
+            let html = '';
+            results.forEach(item => {
+                const panTypeName = getPanTypeName(item.pan_type);
+                // 显示真实来源和时间
+                const sourceName = item.source || '未知来源';
+                const sourceTime = item.time || '';
+                const sourceDisplay = sourceTime ? `${sourceName} (${sourceTime})` : sourceName;
+                
+                html += `
+                    <div class="result-item">
+                        <div class="result-title">${escapeHtml(item.title)}</div>
+                        <div class="result-meta">
+                            <span class="result-tag">${panTypeName}</span>
+                            <span>来源: ${escapeHtml(sourceDisplay)}</span>
+                            ${item.size ? '<span>大小: ' + escapeHtml(item.size) + '</span>' : ''}
+                        </div>
+                        <div class="result-actions">
+                            ${item.url ? '<a href="' + escapeHtml(item.url) + '" target="_blank" class="btn btn-primary">打开链接</a>' : ''}
+                            ${item.url ? '<button onclick="copyLink(\'' + escapeHtml(item.url) + '\')" class="btn btn-success">复制链接</button>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        // 显示空结果
+        function displayEmpty(message) {
+            document.getElementById('results-container').innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon">📁</div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        // 获取网盘类型名称
+        function getPanTypeName(type) {
+            const names = { 0: '夸克', 2: '百度', 3: '阿里', 4: 'UC', 5: '迅雷' };
+            return names[type] || '未知';
+        }
+        
+        // 复制链接
+        function copyLink(url) {
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert('链接已复制到剪贴板');
+        }
+        
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 页面加载时自动搜索
+        window.addEventListener('DOMContentLoaded', function() {
+            const keyword = '{{.Keyword}}';
+            if (keyword) {
+                handleSearch();
+            }
+        });
+    </script>
+</body>
+</html>
+{{end}}

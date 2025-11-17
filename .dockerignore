@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# 编译产物
+*.exe
+*.dll
+*.so
+*.dylib
+
+# 日志和缓存
+logs/
+cache/
+*.log
+
+# 配置文件（避免将本地配置打包进镜像）
+config.yaml
+install.lock
+
+# 文档
+*.md
+!README.md
+
+# Docker文件
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# 临时文件
+tmp/
+temp/
+
+# 依赖目录
+vendor/
+
+# 测试文件
+*_test.go
+
+# 其他
+.DS_Store
+Thumbs.db

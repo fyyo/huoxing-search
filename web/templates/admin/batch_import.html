@@ -1,0 +1,470 @@
+{{define "admin/batch_import.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量导入 - Xinyue</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .admin-layout { display: flex; height: 100vh; }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 250px;
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-menu { flex: 1; overflow-y: auto; }
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .menu-item.active { background: #1890ff; color: #fff; }
+        .menu-group { margin: 10px 0; }
+        .menu-group-title {
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+        }
+        
+        /* 主内容区 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .header-title { font-size: 18px; font-weight: bold; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-info:hover { background: #f0f0f0; }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: #1890ff; color: #fff; }
+        .btn-primary:hover { background: #40a9ff; }
+        .btn-success { background: #52c41a; color: #fff; }
+        .btn-success:hover { background: #73d13d; }
+        .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; }
+        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
+        
+        /* 卡片 */
+        .card {
+            background: #fff;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        /* 表单 */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-select, .form-input, .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-select:focus, .form-input:focus, .form-textarea:focus { border-color: #1890ff; }
+        .form-textarea {
+            resize: vertical;
+            min-height: 400px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .form-help {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 提示框 */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        .alert-info {
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+        .alert-success {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        .alert-error {
+            background: #fff1f0;
+            color: #ff4d4f;
+            border: 1px solid #ffccc7;
+        }
+        
+        /* 统计卡片 */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e8e8e8;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .stat-total .stat-number { color: #1890ff; }
+        .stat-success .stat-number { color: #52c41a; }
+        .stat-failed .stat-number { color: #ff4d4f; }
+        
+        /* 错误列表 */
+        .error-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+        .error-item {
+            padding: 8px 12px;
+            background: #fff1f0;
+            border-left: 3px solid #ff4d4f;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .footer {
+            height: 50px;
+            background: #fff;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">心悦管理后台</div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <!-- 侧边栏菜单由 admin-sidebar.js 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title">批量导入资源</div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-default" target="_blank">查看网站</a>
+                    <div class="user-info" onclick="logout()">
+                        <div class="avatar">A</div>
+                        <span>管理员</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div id="alertBox"></div>
+                
+                <!-- 使用说明 -->
+                <div class="card">
+                    <div class="card-title">📝 导入说明</div>
+                    <div class="alert alert-info">
+                        <strong>支持格式:</strong><br>
+                        1. 纯链接: https://pan.quark.cn/s/abc123<br>
+                        2. 标题|链接: 速度与激情|https://pan.quark.cn/s/abc123<br>
+                        3. 链接|标题: https://pan.quark.cn/s/abc123|速度与激情<br><br>
+                        <strong>注意事项:</strong><br>
+                        • 空行和以 # 开头的行会被忽略<br>
+                        • 重复的链接会被跳过<br>
+                        • 建议每次导入不超过1000条
+                    </div>
+                </div>
+                
+                <!-- 导入设置 -->
+                <div class="card">
+                    <div class="card-title">⚙️ 导入设置</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">网盘类型</label>
+                            <select class="form-select" id="panType">
+                                <option value="0">夸克网盘</option>
+                                <option value="2">百度网盘</option>
+                                <option value="3">阿里云盘</option>
+                                <option value="4">UC网盘</option>
+                                <option value="5">迅雷网盘</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">是否临时资源</label>
+                            <select class="form-select" id="isTime">
+                                <option value="0">永久</option>
+                                <option value="1">临时</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">资源状态</label>
+                            <select class="form-select" id="status">
+                                <option value="1">启用</option>
+                                <option value="0">禁用</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 导入内容 -->
+                <div class="card">
+                    <div class="card-title">📋 导入内容</div>
+                    <div class="form-group">
+                        <textarea class="form-textarea" id="importContent" placeholder="请在此粘贴要导入的资源链接..."></textarea>
+                        <div class="form-help">
+                            行数: <span id="lineCount">0</span> | 字符数: <span id="charCount">0</span>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="startImport()">🚀 开始导入</button>
+                        <button class="btn btn-default" onclick="clearContent()">🗑️ 清空内容</button>
+                    </div>
+                </div>
+                
+                <!-- 导入结果 -->
+                <div id="resultSection" class="card" style="display: none;">
+                    <div class="card-title">📊 导入结果</div>
+                    <div class="stats-row">
+                        <div class="stat-card stat-total">
+                            <div class="stat-number" id="totalCount">0</div>
+                            <div class="stat-label">总数</div>
+                        </div>
+                        <div class="stat-card stat-success">
+                            <div class="stat-number" id="successCount">0</div>
+                            <div class="stat-label">成功</div>
+                        </div>
+                        <div class="stat-card stat-failed">
+                            <div class="stat-number" id="failedCount">0</div>
+                            <div class="stat-label">失败</div>
+                        </div>
+                    </div>
+                    
+                    <div id="errorContainer" style="display: none;">
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8e8e8;">
+                            <strong style="color: #ff4d4f;">❌ 失败详情:</strong>
+                            <div class="error-list" id="errorList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">Copyright © 2025 心悦网盘搜索系统. Powered by Go</div>
+        </div>
+    </div>
+    
+    <script>
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/admin/login';
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = '<div class="alert alert-' + type + '">' + message + '</div>';
+            setTimeout(function() {
+                alertBox.innerHTML = '';
+            }, 3000);
+        }
+        
+        function updateStats() {
+            const textarea = document.getElementById('importContent');
+            const content = textarea.value;
+            const lines = content.split('\n').filter(function(line) {
+                const trimmed = line.trim();
+                return trimmed !== '' && !trimmed.startsWith('#');
+            });
+            
+            document.getElementById('lineCount').textContent = lines.length;
+            document.getElementById('charCount').textContent = content.length;
+        }
+        
+        document.getElementById('importContent').addEventListener('input', updateStats);
+        
+        function clearContent() {
+            if (confirm('确定要清空所有内容吗？')) {
+                document.getElementById('importContent').value = '';
+                updateStats();
+            }
+        }
+        
+        async function startImport() {
+            const content = document.getElementById('importContent').value.trim();
+            if (!content) {
+                showAlert('请输入要导入的内容', 'error');
+                return;
+            }
+            
+            const lines = content.split('\n').filter(function(line) {
+                const trimmed = line.trim();
+                return trimmed !== '' && !trimmed.startsWith('#');
+            });
+            
+            if (lines.length === 0) {
+                showAlert('没有有效的导入内容', 'error');
+                return;
+            }
+            
+            if (lines.length > 1000) {
+                if (!confirm('将导入 ' + lines.length + ' 条记录，建议分批导入。是否继续？')) {
+                    return;
+                }
+            }
+            
+            try {
+                showAlert('正在导入中，请稍候...', 'info');
+                
+                const token = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/batch-import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        pan_type: parseInt(document.getElementById('panType').value),
+                        is_time: parseInt(document.getElementById('isTime').value),
+                        status: parseInt(document.getElementById('status').value)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const data = result.data;
+                    document.getElementById('totalCount').textContent = data.total;
+                    document.getElementById('successCount').textContent = data.success;
+                    document.getElementById('failedCount').textContent = data.failed;
+                    document.getElementById('resultSection').style.display = 'block';
+                    
+                    
+if (data.errors && data.errors.length > 0) {
+                        const errorList = document.getElementById('errorList');
+                        errorList.innerHTML = data.errors.map(function(error) {
+                            return '<div class="error-item">' + error + '</div>';
+                        }).join('');
+                        document.getElementById('errorContainer').style.display = 'block';
+                    } else {
+                        document.getElementById('errorContainer').style.display = 'none';
+                    }
+                    
+                    if (data.failed === 0) {
+                        showAlert('导入成功！共导入 ' + data.success + ' 条记录', 'success');
+                    } else {
+                        showAlert('导入完成！成功 ' + data.success + ' 条，失败 ' + data.failed + ' 条', 'info');
+                    }
+                } else {
+                    showAlert('导入失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('导入失败:', error);
+                showAlert('导入失败: ' + error.message, 'error');
+            }
+        }
+        
+        updateStats();
+    </script>
+    
+    <!-- 引入侧边栏JS -->
+    <script src="/static/admin-sidebar.js"></script>
+</body>
+</html>
+{{end}}
