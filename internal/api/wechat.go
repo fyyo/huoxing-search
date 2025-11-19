@@ -126,67 +126,101 @@ func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
 
 // decryptChatbotMessage 解密对话平台消息
 func (h *WechatHandler) decryptChatbotMessage(encrypted, encodingAESKey, appID string) (*ChatbotMessage, error) {
-	// Base64解码EncodingAESKey
+	// Base64解码EncodingAESKey（添加'='填充）
 	key, err := base64.StdEncoding.DecodeString(encodingAESKey + "=")
 	if err != nil {
 		return nil, fmt.Errorf("解码AES密钥失败: %w", err)
 	}
 
-	// Base64解码加密数据
+	// encrypted 是 Base64 编码的密文，需要解码
 	ciphertext, err := base64.StdEncoding.DecodeString(encrypted)
 	if err != nil {
 		return nil, fmt.Errorf("解码加密数据失败: %w", err)
 	}
 
-	// AES解密
+	// AES-256-CBC 解密
 	block, err := aes.NewCipher(key[:32])
 	if err != nil {
 		return nil, fmt.Errorf("创建AES cipher失败: %w", err)
 	}
 
 	if len(ciphertext) < aes.BlockSize {
-		return nil, fmt.Errorf("密文太短")
+		return nil, fmt.Errorf("密文太短: %d字节", len(ciphertext))
+	}
+
+	// 密文长度必须是块大小的倍数
+	if len(ciphertext)%aes.BlockSize != 0 {
+		return nil, fmt.Errorf("密文长度不是块大小的倍数: %d", len(ciphertext))
 	}
 
 	iv := key[:16]
 	mode := cipher.NewCBCDecrypter(block, iv)
-	mode.CryptBlocks(ciphertext, ciphertext)
+	
+	// 创建新的切片用于存放解密结果
+	plaintext := make([]byte, len(ciphertext))
+	mode.CryptBlocks(plaintext, ciphertext)
 
 	// 去除PKCS7填充
-	plaintext := pkcs7Unpad(ciphertext)
+	plaintext = pkcs7Unpad(plaintext)
+	
+	logger.Info("解密成功",
+		zap.Int("plaintext_len", len(plaintext)),
+		zap.String("plaintext_preview", fmt.Sprintf("%x...", plaintext[:min(32, len(plaintext))])))
 
 	// 提取XML内容
-	// 格式: 16位随机字符串 + 4字节消息长度 + XML内容 + AppID
+	// 格式: 16位随机字符串 + 4字节消息长度(网络字节序) + XML内容 + AppID
 	if len(plaintext) < 20 {
-		return nil, fmt.Errorf("解密后数据太短: 长度=%d", len(plaintext))
+		return nil, fmt.Errorf("解密后数据太短: %d字节", len(plaintext))
 	}
 
+	// 跳过前16字节随机字符串
 	content := plaintext[16:]
 	
-	// 安全检查：确保有足够的字节读取长度字段
+	// 读取4字节的消息长度（大端序）
 	if len(content) < 4 {
-		return nil, fmt.Errorf("内容太短，无法读取消息长度: 长度=%d", len(content))
+		return nil, fmt.Errorf("无法读取消息长度: 可用%d字节", len(content))
 	}
 	
 	xmlLen := binary.BigEndian.Uint32(content[:4])
 	
-	// 安全检查：验证xmlLen的合理性
-	if xmlLen == 0 {
-		return nil, fmt.Errorf("消息长度为0")
-	}
-	if xmlLen > uint32(len(content)-4) {
-		return nil, fmt.Errorf("消息长度异常: xmlLen=%d, 可用长度=%d", xmlLen, len(content)-4)
+	// 验证xmlLen的合理性
+	availableLen := len(content) - 4
+	if xmlLen == 0 || int(xmlLen) > availableLen {
+		return nil, fmt.Errorf("消息长度异常: xmlLen=%d, 可用=%d字节", xmlLen, availableLen)
 	}
 	
+	// 提取XML内容
 	xmlContent := content[4 : 4+xmlLen]
+	
+	logger.Info("提取XML内容",
+		zap.Uint32("xml_len", xmlLen),
+		zap.String("xml_preview", string(xmlContent[:min(100, len(xmlContent))])))
 
 	// 解析XML
 	var msg ChatbotMessage
 	if err := xml.Unmarshal(xmlContent, &msg); err != nil {
-		return nil, fmt.Errorf("解析XML失败: %w", err)
+		return nil, fmt.Errorf("解析XML失败: %w, XML内容: %s", err, string(xmlContent))
+	}
+
+	// 验证AppID
+	fromAppID := string(content[4+xmlLen:])
+	fromAppID = strings.TrimRight(fromAppID, "\x00") // 去除填充的空字节
+	
+	if fromAppID != appID {
+		logger.Warn("AppID不匹配",
+			zap.String("expected", appID),
+			zap.String("actual", fromAppID))
 	}
 
 	return &msg, nil
+}
+
+// min 返回两个整数中的较小值
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // processChatbotMessage 处理对话平台消息
