@@ -264,13 +264,38 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 		}, nil
 	}
 	
-	// 📦 第三步: 尝试批量转存（如果网盘已配置）
-	// 如果网盘未配置，跳过转存，直接返回原始搜索结果
+	// 📦 第三步: 尝试批量转存（如果转存服务可用且网盘已配置）
 	logger.Info("📦 Pansou返回结果,检查是否可以转存",
 		zap.Int("count", len(pansouResults)),
 		zap.Int("target_display", maxSearchResults),
 		zap.Int("target_transfer", maxTransferCount),
 	)
+	
+	// 🔧 优先检查转存服务是否可用（微信公众号场景）
+	if s.transferService == nil {
+		logger.Info("⚠️ 转存服务未初始化（微信公众号禁用转存），跳过转存",
+			zap.String("reason", "避免超过5秒响应限制"),
+		)
+		
+		// 限制返回数量为配置的最大搜索结果数
+		displayCount := maxSearchResults
+		if displayCount > len(pansouResults) {
+			displayCount = len(pansouResults)
+		}
+		
+		finalResults := make([]model.SearchResult, 0, displayCount)
+		for i := 0; i < displayCount; i++ {
+			result := pansouResults[i]
+			result.IsTransferred = false
+			finalResults = append(finalResults, result)
+		}
+		
+		return &model.SearchResponse{
+			Total:   len(finalResults),
+			Results: finalResults,
+			Message: "搜索成功(原始链接，微信公众号)",
+		}, nil
+	}
 	
 	// 检查网盘是否已配置
 	netdiskConfigured := s.isNetdiskConfigured(ctx, req.PanType)
@@ -298,30 +323,6 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 			Total:   len(finalResults),
 			Results: finalResults,
 			Message: "搜索成功(原始链接，网盘未配置)",
-		}, nil
-	}
-	
-	// 网盘已配置，检查转存服务是否可用
-	if s.transferService == nil {
-		logger.Warn("⚠️ 转存服务未初始化（可能在微信回调中），跳过转存")
-		
-		// 限制返回数量为配置的最大搜索结果数
-		displayCount := maxSearchResults
-		if displayCount > len(pansouResults) {
-			displayCount = len(pansouResults)
-		}
-		
-		finalResults := make([]model.SearchResult, 0, displayCount)
-		for i := 0; i < displayCount; i++ {
-			result := pansouResults[i]
-			result.IsTransferred = false
-			finalResults = append(finalResults, result)
-		}
-		
-		return &model.SearchResponse{
-			Total:   len(finalResults),
-			Results: finalResults,
-			Message: "搜索成功(原始链接，转存服务未初始化)",
 		}, nil
 	}
 	

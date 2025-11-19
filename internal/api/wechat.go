@@ -153,11 +153,26 @@ func (h *WechatHandler) decryptChatbotMessage(encrypted, encodingAESKey, appID s
 	// 提取XML内容
 	// 格式: 16位随机字符串 + 4字节消息长度 + XML内容 + AppID
 	if len(plaintext) < 20 {
-		return nil, fmt.Errorf("解密后数据太短")
+		return nil, fmt.Errorf("解密后数据太短: 长度=%d", len(plaintext))
 	}
 
 	content := plaintext[16:]
+	
+	// 安全检查：确保有足够的字节读取长度字段
+	if len(content) < 4 {
+		return nil, fmt.Errorf("内容太短，无法读取消息长度: 长度=%d", len(content))
+	}
+	
 	xmlLen := binary.BigEndian.Uint32(content[:4])
+	
+	// 安全检查：验证xmlLen的合理性
+	if xmlLen == 0 {
+		return nil, fmt.Errorf("消息长度为0")
+	}
+	if xmlLen > uint32(len(content)-4) {
+		return nil, fmt.Errorf("消息长度异常: xmlLen=%d, 可用长度=%d", xmlLen, len(content)-4)
+	}
+	
 	xmlContent := content[4 : 4+xmlLen]
 
 	// 解析XML
@@ -202,11 +217,11 @@ func (h *WechatHandler) processChatbotMessage(msg *ChatbotMessage, appID, token,
 		// 先发送"正在搜索"提示
 		h.sendChatbotMessage(msg, "正在深入搜索,请稍等...", appID, token, encodingAESKey)
 
-		// 执行搜索（v1.0.10: MaxCount 从 5 改为 10）
+		// 执行搜索（限制10条避免消息太长）
 		results, err := searchService.Search(ctx, model.SearchRequest{
 			Keyword:  keyword,
 			PanType:  0, // 默认夸克
-			MaxCount: 10,
+			MaxCount: 10, // 微信对话平台最多返回10条
 		})
 
 		if err != nil {
@@ -429,39 +444,64 @@ func (h *WechatHandler) OfficialAccountCallback(c *gin.Context) {
 	cacheRepo := repository.NewCacheRepository()
 	searchService := service.NewSearchService(h.configRepo, cacheRepo, nil)
 
-	// 执行搜索（公众号禁用转存，直接返回原始链接）
+	// 执行搜索（公众号禁用转存，限制10条避免消息太长）
 	ctx := context.Background()
 	results, err := searchService.Search(ctx, model.SearchRequest{
 		Keyword:  keyword,
 		PanType:  0, // 默认夸克
-		MaxCount: 5,
+		MaxCount: 10, // 微信公众号最多返回10条
 	})
 
 	if err != nil {
 		logger.Error("搜索失败", zap.Error(err))
-		c.String(http.StatusOK, "success")
+		// 返回错误提示给用户
+		replyContent := "搜索出错了，请稍后再试~"
+		replyXML := fmt.Sprintf(`<xml>
+<ToUserName><![CDATA[%s]]></ToUserName>
+<FromUserName><![CDATA[%s]]></FromUserName>
+<CreateTime>%d</CreateTime>
+<MsgType><![CDATA[text]]></MsgType>
+<Content><![CDATA[%s]]></Content>
+</xml>`, msg.FromUserName, msg.ToUserName, time.Now().Unix(), replyContent)
+		c.Data(http.StatusOK, "application/xml", []byte(replyXML))
 		return
 	}
 
 	// v1.0.8: 添加 nil 检查
 	if results == nil || results.Results == nil {
-		c.String(http.StatusOK, "success")
+		replyContent := "搜索出错了，请稍后再试~"
+		replyXML := fmt.Sprintf(`<xml>
+<ToUserName><![CDATA[%s]]></ToUserName>
+<FromUserName><![CDATA[%s]]></FromUserName>
+<CreateTime>%d</CreateTime>
+<MsgType><![CDATA[text]]></MsgType>
+<Content><![CDATA[%s]]></Content>
+</xml>`, msg.FromUserName, msg.ToUserName, time.Now().Unix(), replyContent)
+		c.Data(http.StatusOK, "application/xml", []byte(replyXML))
 		return
 	}
 
-	// 构建回复内容
+	// 构建回复内容（限制最多10条）
 	var replyContent string
 	if len(results.Results) == 0 {
 		replyContent = "未找到,减少关键词尝试搜索。"
 	} else {
-		for _, item := range results.Results {
-			if replyContent != "" {
-				replyContent += "\n" + item.Title + "\n" + item.URL + "\n --------------------"
-			} else {
-				replyContent = item.Title + "\n" + item.URL + "\n --------------------"
+		// 限制最多返回10条结果
+		maxResults := 10
+		if len(results.Results) > maxResults {
+			results.Results = results.Results[:maxResults]
+		}
+		
+		for i, item := range results.Results {
+			if i > 0 {
+				replyContent += "\n"
+			}
+			replyContent += item.Title + "\n" + item.URL
+			if i < len(results.Results)-1 {
+				replyContent += "\n--------------------"
 			}
 		}
-		replyContent += "\n 步骤：点击上方链接-打开网盘-点立即查看-点右下角保存-打开文件-按文件名排序即可从第一集开始-自动-全集播放"
+		replyContent += "\n\n步骤：点击上方链接-打开网盘-点立即查看-点右下角保存-打开文件-按文件名排序即可从第一集开始-自动-全集播放"
 	}
 
 	// 构建回复XML
