@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
 )
 
 // 在init函数中注册插件

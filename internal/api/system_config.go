@@ -1,11 +1,11 @@
-package api
+﻿package api
 
 import (
 	"net/http"
 	"strconv"
 	"time"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -191,6 +191,126 @@ func (h *SystemConfigHandler) BatchUpdate(c *gin.Context) {
 		"code":    200,
 		"message": "更新成功",
 	})
+}
+
+// BatchUpsert 批量插入或更新配置（根据name）
+func (h *SystemConfigHandler) BatchUpsert(c *gin.Context) {
+	var req map[string]interface{}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "参数错误: " + err.Error(),
+		})
+		return
+	}
+
+	// 调试日志：打印接收到的原始数据
+	println("📥 [BatchUpsert] 接收到的数据:")
+	for key, value := range req {
+		println("  ", key, "=", value, "(类型:", getTypeName(value), ")")
+	}
+
+	if len(req) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "配置不能为空",
+		})
+		return
+	}
+
+	// 转换为 map[string]string
+	strMap := make(map[string]string)
+
+	// 检查是否是数组格式: {"configs": [{"name": "xx", "value": "yy"}, ...]}
+	if configsArray, ok := req["configs"].([]interface{}); ok {
+		// 数组格式（微信配置页面使用）
+		println("📦 [BatchUpsert] 检测到数组格式，开始解析...")
+		for i, item := range configsArray {
+			if configMap, ok := item.(map[string]interface{}); ok {
+				name, nameOk := configMap["name"].(string)
+				value, valueOk := configMap["value"].(string)
+				
+				if nameOk && name != "" {
+					if !valueOk {
+						value = "" // value不是字符串时设为空
+					}
+					strMap[name] = value
+					println("  ✅ [", i, "]", name, "=", value)
+				}
+			}
+		}
+	} else {
+		// 直接键值对格式: {"name1": "value1", "name2": "value2"}
+		println("📦 [BatchUpsert] 检测到键值对格式，开始解析...")
+		for key, value := range req {
+			// 跳过 configs 键（如果存在）
+			if key == "configs" {
+				continue
+			}
+			
+			var strValue string
+			switch v := value.(type) {
+			case string:
+				strValue = v
+			case []interface{}:
+				if len(v) > 0 {
+					if str, ok := v[0].(string); ok {
+						strValue = str
+					}
+				}
+			case nil:
+				strValue = ""
+			default:
+				strValue = ""
+			}
+
+			if key != "" {
+				strMap[key] = strValue
+				println("  ✅", key, "=", strValue)
+			}
+		}
+	}
+
+	println("📊 [BatchUpsert] 转换后的配置数量:", len(strMap))
+
+	if len(strMap) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "没有有效的配置数据，请检查前端数据格式",
+		})
+		return
+	}
+
+	if err := h.repo.BatchUpsert(c.Request.Context(), strMap); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "批量保存失败: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "保存成功",
+	})
+}
+
+// getTypeName 获取值的类型名称（用于调试）
+func getTypeName(v interface{}) string {
+	if v == nil {
+		return "nil"
+	}
+	switch v.(type) {
+	case string:
+		return "string"
+	case []interface{}:
+		return "array"
+	case map[string]interface{}:
+		return "object"
+	default:
+		return "unknown"
+	}
 }
 
 // Delete 删除配置

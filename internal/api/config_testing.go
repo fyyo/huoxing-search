@@ -1,4 +1,4 @@
-package api
+﻿package api
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"xinyue-go/internal/netdisk"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/netdisk"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/repository"
 )
 
 // ConfigTestHandler 配置测试处理器
@@ -124,10 +124,10 @@ func (h *ConfigTestHandler) TestWechatConnection(c *gin.Context) {
 
 	switch req.Type {
 	case "chatbot":
-		// 测试对话开放平台配置
-		appID, _ := h.configRepo.Get(ctx, "wechat_chatbot_app_id")
-		token, _ := h.configRepo.Get(ctx, "wechat_chatbot_token")
-		encodingAESKey, _ := h.configRepo.Get(ctx, "wechat_chatbot_encoding_aes_key")
+		// 测试对话开放平台配置（统一使用 wx_* 前缀）
+		appID, _ := h.configRepo.Get(ctx, "wx_chat_appid")
+		token, _ := h.configRepo.Get(ctx, "wx_chat_token")
+		encodingAESKey, _ := h.configRepo.Get(ctx, "wx_chat_aes_key")
 
 		if appID == "" || token == "" || encodingAESKey == "" {
 			c.JSON(http.StatusOK, gin.H{
@@ -161,8 +161,8 @@ func (h *ConfigTestHandler) TestWechatConnection(c *gin.Context) {
 		})
 
 	case "official":
-		// 测试公众号配置
-		token, _ := h.configRepo.Get(ctx, "wechat_official_token")
+		// 测试公众号配置（统一使用 wx_* 前缀）
+		token, _ := h.configRepo.Get(ctx, "wx_official_token")
 
 		if token == "" {
 			c.JSON(http.StatusOK, gin.H{

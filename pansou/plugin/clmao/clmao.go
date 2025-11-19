@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
 )
 
 // 常量定义

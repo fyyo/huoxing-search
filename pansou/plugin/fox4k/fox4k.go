@@ -18,8 +18,8 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/proxy"
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
 )
 
 // 常量定义

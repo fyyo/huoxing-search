@@ -124,21 +124,21 @@
                         <div class="config-item">
                             <div class="config-label">AppID</div>
                             <div class="config-input-wrapper">
-                                <input type="text" class="config-input" id="wx_chatbot_appid" placeholder="请输入对话平台AppID">
+                                <input type="text" class="config-input" id="wx_chat_appid" placeholder="请输入对话平台AppID">
                                 <div class="config-help">对话开放平台的应用ID</div>
                             </div>
                         </div>
                         <div class="config-item">
                             <div class="config-label">Token</div>
                             <div class="config-input-wrapper">
-                                <input type="text" class="config-input" id="wx_chatbot_token" placeholder="请输入API访问令牌">
+                                <input type="text" class="config-input" id="wx_chat_token" placeholder="请输入API访问令牌">
                                 <div class="config-help">用于访问API的令牌</div>
                             </div>
                         </div>
                         <div class="config-item">
                             <div class="config-label">EncodingAESKey</div>
                             <div class="config-input-wrapper">
-                                <input type="text" class="config-input" id="wx_chatbot_aeskey" placeholder="请输入消息加密密钥">
+                                <input type="text" class="config-input" id="wx_chat_aes_key" placeholder="请输入消息加密密钥">
                                 <div class="config-help">消息加密/解密密钥</div>
                             </div>
                         </div>
@@ -181,7 +181,7 @@
         let currentTab = 'official';
         const configKeys = {
             official: ['wx_official_appid', 'wx_official_secret', 'wx_official_token', 'wx_official_aeskey'],
-            chatbot: ['wx_chatbot_appid', 'wx_chatbot_token', 'wx_chatbot_aeskey', 'wx_chatbot_name', 'wx_chatbot_welcome']
+            chatbot: ['wx_chat_appid', 'wx_chat_token', 'wx_chat_aes_key', 'wx_chatbot_name', 'wx_chatbot_welcome']
         };
         
         function logout() {
@@ -333,9 +333,9 @@
                 'wx_official_secret': '公众号AppSecret',
                 'wx_official_token': '服务器Token',
                 'wx_official_aeskey': '消息加密密钥',
-                'wx_chatbot_appid': '对话平台AppID',
-                'wx_chatbot_token': 'API访问Token',
-                'wx_chatbot_aeskey': '消息加密密钥',
+                'wx_chat_appid': '对话平台AppID',
+                'wx_chat_token': 'API访问Token',
+                'wx_chat_aes_key': '消息加密密钥',
                 'wx_chatbot_name': '机器人名称',
                 'wx_chatbot_welcome': '欢迎消息'
             };
@@ -348,9 +348,9 @@
                 'wx_official_secret': '公众号的应用密钥',
                 'wx_official_token': '用于验证服务器的令牌',
                 'wx_official_aeskey': '消息加密/解密密钥',
-                'wx_chatbot_appid': '对话开放平台的应用ID',
-                'wx_chatbot_token': '用于访问API的令牌',
-                'wx_chatbot_aeskey': '消息加密/解密密钥',
+                'wx_chat_appid': '对话开放平台的应用ID',
+                'wx_chat_token': '用于访问API的令牌',
+                'wx_chat_aes_key': '消息加密/解密密钥',
                 'wx_chatbot_name': '显示给用户的机器人名称',
                 'wx_chatbot_welcome': '用户首次对话时的欢迎语'
             };

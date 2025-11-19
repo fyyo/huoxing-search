@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
-	"xinyue-go/pansou/util/json"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
+	"huoxing-search/pansou/util/json"
 )
 
 // 预编译的正则表达式（性能优化）

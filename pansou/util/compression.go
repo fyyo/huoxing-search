@@ -7,7 +7,7 @@ import (
 	"strings"
 	
 	"github.com/gin-gonic/gin"
-	"xinyue-go/pansou/config"
+	"huoxing-search/pansou/config"
 )
 
 // 压缩响应的包装器

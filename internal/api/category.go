@@ -1,12 +1,12 @@
-package api
+﻿package api
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/repository"
 )
 
 // CategoryHandler 分类处理器

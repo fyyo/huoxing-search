@@ -1,9 +1,9 @@
-package repository
+﻿package repository
 
 import (
 	"context"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/database"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/database"
 
 	"gorm.io/gorm"
 )

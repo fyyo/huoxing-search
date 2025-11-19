@@ -1,11 +1,11 @@
-package repository
+﻿package repository
 
 import (
 	"context"
 
 	"gorm.io/gorm"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/database"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/database"
 )
 
 // CategoryRepository 分类仓储接口

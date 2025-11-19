@@ -1,4 +1,4 @@
-package api
+﻿package api
 
 // getInstallHTML 返回安装页面HTML
 func getInstallHTML() string {

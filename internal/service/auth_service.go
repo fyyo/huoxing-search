@@ -1,4 +1,4 @@
-package service
+﻿package service
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/pkg/jwt"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/jwt"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/repository"
 )
 
 var (

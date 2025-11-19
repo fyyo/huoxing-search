@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
-	"xinyue-go/pansou/util/cache"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
+	"huoxing-search/pansou/util/cache"
 )
 
 // CacheWriteIntegration 缓存写入集成层

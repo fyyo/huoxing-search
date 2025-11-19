@@ -1,4 +1,4 @@
-package aliyun
+﻿package aliyun
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/repository"
 )
 
 // AliyunClient 阿里云盘客户端

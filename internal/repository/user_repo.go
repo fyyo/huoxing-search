@@ -1,11 +1,11 @@
-package repository
+﻿package repository
 
 import (
 	"context"
 
 	"gorm.io/gorm"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/database"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/database"
 )
 
 // UserRepository 用户仓储接口

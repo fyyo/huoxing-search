@@ -1,4 +1,4 @@
-package api
+﻿package api
 
 import (
 	"net/http"
@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/repository"
 )
 
 // BatchImportHandler 批量导入处理器

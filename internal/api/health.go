@@ -1,4 +1,4 @@
-package api
+﻿package api
 
 import (
 	"net/http"
@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/pkg/database"
-	"xinyue-go/internal/pkg/redis"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/database"
+	"huoxing-search/internal/pkg/redis"
 )
 
 // HealthHandler 健康检查处理器

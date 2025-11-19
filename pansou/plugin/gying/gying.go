@@ -24,9 +24,9 @@ import (
 	"unsafe"
 
 	"github.com/gin-gonic/gin"
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
-	"xinyue-go/pansou/util/json"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
+	"huoxing-search/pansou/util/json"
 	
 	cloudscraper "github.com/Advik-B/cloudscraper/lib"
 )

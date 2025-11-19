@@ -1,7 +1,7 @@
 .PHONY: help build run test clean docker-build docker-up docker-down install-deps lint fmt
 
 # 变量定义
-APP_NAME=xinyue-go
+APP_NAME=huoxing-search
 VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_TIME=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
 GO_VERSION=$(shell go version | awk '{print $$3}')
@@ -9,7 +9,7 @@ LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X 
 
 # 默认目标
 help: ## 显示帮助信息
-	@echo "Xinyue-Go 构建工具"
+	@echo "Huoxing-Search 构建工具"
 	@echo ""
 	@echo "可用命令:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -114,7 +114,7 @@ docker-ps: ## 查看运行中的容器
 
 init-db: ## 初始化数据库
 	@echo "初始化数据库..."
-	mysql -h localhost -u root -p xinyue < deploy/mysql/init.sql
+	mysql -h localhost -u root -p huoxing < deploy/mysql/init.sql
 	@echo "数据库初始化完成"
 
 migrate: ## 运行数据库迁移

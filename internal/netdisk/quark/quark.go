@@ -1,4 +1,4 @@
-package quark
+﻿package quark
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/repository"
 )
 
 // QuarkClient 夸克网盘客户端

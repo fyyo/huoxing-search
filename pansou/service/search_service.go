@@ -12,12 +12,12 @@ import (
 	"sync"
 	"time"
 
-	"xinyue-go/pansou/config"
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
-	"xinyue-go/pansou/util"
-	"xinyue-go/pansou/util/cache"
-	"xinyue-go/pansou/util/pool"
+	"huoxing-search/pansou/config"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
+	"huoxing-search/pansou/util"
+	"huoxing-search/pansou/util/cache"
+	"huoxing-search/pansou/util/pool"
 )
 
 // normalizeUrl 标准化URL，将URL编码的中文部分解码为中文，用于去重

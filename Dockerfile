@@ -1,46 +1,40 @@
-# 多阶段构建 - 构建阶段
-FROM golang:1.21-alpine AS builder
+# 构建阶段
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /build
 
-# 安装必要的工具
-RUN apk add --no-cache git
+# 安装构建依赖
+RUN apk add --no-cache git ca-certificates tzdata
 
-# 复制go mod文件
-COPY go.mod go.sum ./
+# 设置 Go 镜像源
+ENV GOPROXY=https://goproxy.cn,direct
+ENV GOSUMDB=sum.golang.google.cn
 
 # 下载依赖
+COPY go.mod go.sum ./
 RUN go mod download
 
-# 复制整个项目源代码（包括pansou子目录）
+# 复制源代码并编译
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/huoxing-server ./cmd/server
 
-# 编译xinyue-go主程序（pansou已作为库集成）
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/xinyue-server ./cmd/server
-
-# 最终运行镜像
+# 运行阶段
 FROM alpine:latest
 
-# 安装必要工具
 RUN apk --no-cache add ca-certificates tzdata wget
 
-# 设置时区
 ENV TZ=Asia/Shanghai
 
 WORKDIR /app
 
-# 从构建阶段复制二进制文件
-COPY --from=builder /app/xinyue-server /app/xinyue-server
-
-# 复制必要的资源文件
+# 复制文件
+COPY --from=builder /app/huoxing-server /app/huoxing-server
 COPY --from=builder /build/install /app/install
 COPY --from=builder /build/web /app/web
 
-# 创建必要的目录
-RUN mkdir -p /app/logs /app/cache
+# 创建目录
+RUN mkdir -p /app/data /app/logs /app/cache
 
-# 暴露端口（只需要xinyue-go的API端口）
 EXPOSE 6060
 
-# 启动xinyue-go服务
-CMD ["/app/xinyue-server"]
+CMD ["/app/huoxing-server"]

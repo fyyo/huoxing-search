@@ -1,9 +1,9 @@
-package netdisk
+﻿package netdisk
 
 import (
 	"context"
 	
-	"xinyue-go/internal/model"
+	"huoxing-search/internal/model"
 )
 
 // Netdisk 网盘接口

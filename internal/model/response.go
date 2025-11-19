@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 // Response 统一响应结构
 type Response struct {

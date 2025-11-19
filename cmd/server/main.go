@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"context"
@@ -12,15 +12,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"xinyue-go/internal/api"
-	"xinyue-go/internal/netdisk"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/pkg/database"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/pkg/redis"
-	"xinyue-go/internal/repository"
-	"xinyue-go/internal/service"
-	"xinyue-go/pansou"
+	"huoxing-search/internal/api"
+	"huoxing-search/internal/netdisk"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/database"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/pkg/redis"
+	"huoxing-search/internal/repository"
+	"huoxing-search/internal/service"
+	"huoxing-search/pansou"
 )
 
 var (
@@ -33,9 +33,15 @@ var (
 )
 
 func main() {
-	// 检查是否已安装
-	installLockPath := "./install.lock"
-	configPath := "./config.yaml"
+	// 确保data目录存在
+	if err := os.MkdirAll("./data", 0755); err != nil {
+		fmt.Printf("创建data目录失败: %v\n", err)
+		os.Exit(1)
+	}
+	
+	// 检查是否已安装（配置文件都在data目录中）
+	installLockPath := "./data/install.lock"
+	configPath := "./data/config.yaml"
 	
 	// 如果没有安装锁文件或配置文件，进入安装模式
 	if !fileExists(installLockPath) || !fileExists(configPath) {
@@ -63,8 +69,8 @@ func runUnifiedMode(installMode bool) {
 		fmt.Println("  请在浏览器中访问: http://localhost:6060/install")
 		fmt.Println("===========================================\n")
 	} else {
-		// 正常模式：加载完整配置
-		cfg, err = config.LoadConfig("./config.yaml")
+		// 正常模式：加载完整配置（从data目录）
+		cfg, err = config.LoadConfig("./data/config.yaml")
 		if err != nil {
 			fmt.Printf("加载配置失败: %v\n", err)
 			os.Exit(1)
@@ -237,8 +243,8 @@ func switchToNormalMode() error {
 	// 等待一下，让安装请求完成
 	time.Sleep(500 * time.Millisecond)
 
-	// 加载配置
-	cfg, err := config.LoadConfig("./config.yaml")
+	// 加载配置（从data目录）
+	cfg, err := config.LoadConfig("./data/config.yaml")
 	if err != nil {
 		return fmt.Errorf("加载配置失败: %v", err)
 	}

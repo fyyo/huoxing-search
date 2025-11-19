@@ -3,7 +3,7 @@
 import (
 	"sync"
 
-	"xinyue-go/pansou/model"
+	"huoxing-search/pansou/model"
 )
 
 // LinkPool 网盘链接对象池

@@ -1,11 +1,11 @@
-package api
+﻿package api
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/service"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/service"
 )
 
 // SearchHandler 搜索API处理器

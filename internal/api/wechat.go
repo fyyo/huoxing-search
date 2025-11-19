@@ -1,4 +1,4 @@
-
+﻿
 package api
 
 import (
@@ -17,10 +17,11 @@ import (
 	"strings"
 	"time"
 
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/repository"
-	"xinyue-go/internal/service"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/repository"
+	"huoxing-search/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -64,20 +65,31 @@ type ChatbotResponse struct {
 // ChatbotCallback 处理微信对话开放平台回调
 // 回调地址: https://your-domain.com/api/wechat/chatbot/callback
 func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
+	// 优先从query获取，如果没有则从body获取
 	encrypted := c.Query("encrypted")
 	if encrypted == "" {
+		// 尝试从POST body中获取
+		var body struct {
+			Encrypted string `json:"encrypted"`
+		}
+		if err := c.ShouldBindJSON(&body); err == nil {
+			encrypted = body.Encrypted
+		}
+	}
+	
+	if encrypted == "" {
 		logger.Error("缺少encrypted参数")
-		c.JSON(http.StatusBadRequest, model.BadRequest("缺少encrypted参数"))
+		c.JSON(http.StatusOK, gin.H{"code": 200, "message": "缺少encrypted参数"})
 		return
 	}
 
-	// 从数据库获取配置
+	// 从数据库获取配置（统一使用 wx_* 前缀）
 	ctx := context.Background()
-	appID, _ := h.configRepo.Get(ctx, "wechat_chatbot_app_id")
-	token, _ := h.configRepo.Get(ctx, "wechat_chatbot_token")
-	encodingAESKey, _ := h.configRepo.Get(ctx, "wechat_chatbot_encoding_aes_key")
-	systemName, _ := h.configRepo.Get(ctx, "wechat_chatbot_system_name")
-
+	appID, _ := h.configRepo.Get(ctx, "wx_chat_appid")
+	token, _ := h.configRepo.Get(ctx, "wx_chat_token")
+	encodingAESKey, _ := h.configRepo.Get(ctx, "wx_chat_aes_key")
+	systemName, _ := h.configRepo.Get(ctx, "wx_chatbot_name")
+	
 	if appID == "" || token == "" || encodingAESKey == "" {
 		logger.Error("微信对话平台配置不完整")
 		c.JSON(http.StatusOK, gin.H{"code": 200, "message": "配置不完整"})
@@ -96,9 +108,10 @@ func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
 		return
 	}
 
-	// 创建搜索服务（注意：微信回调中无法使用转存服务，传nil）
+	// 创建完整的服务（对话平台支持转存，响应时间无严格限制）
 	cacheRepo := repository.NewCacheRepository()
-	searchService := service.NewSearchService(h.configRepo, cacheRepo, nil)
+	transferService := service.NewTransferService(config.GlobalConfig)
+	searchService := service.NewSearchService(h.configRepo, cacheRepo, transferService)
 
 	// 处理消息并发送回复
 	h.processChatbotMessage(msg, appID, token, encodingAESKey, systemName, searchService)
@@ -189,11 +202,11 @@ func (h *WechatHandler) processChatbotMessage(msg *ChatbotMessage, appID, token,
 		// 先发送"正在搜索"提示
 		h.sendChatbotMessage(msg, "正在深入搜索,请稍等...", appID, token, encodingAESKey)
 
-		// 执行搜索
+		// 执行搜索（v1.0.10: MaxCount 从 5 改为 10）
 		results, err := searchService.Search(ctx, model.SearchRequest{
 			Keyword:  keyword,
 			PanType:  0, // 默认夸克
-			MaxCount: 5,
+			MaxCount: 10,
 		})
 
 		if err != nil {
@@ -202,9 +215,25 @@ func (h *WechatHandler) processChatbotMessage(msg *ChatbotMessage, appID, token,
 			return
 		}
 
+		// v1.0.8: 添加 nil 检查
+		if results == nil || results.Results == nil {
+			h.sendChatbotMessage(msg, "搜索出错了,请稍后再试~", appID, token, encodingAESKey)
+			return
+		}
+
 		// 构建回复消息
 		replyMsg := buildSearchResultMessage(keyword, results.Results)
+		
+		// v1.0.8: 添加 2000 字符限制
+		if len(replyMsg) > 2000 {
+			replyMsg = replyMsg[:1997] + "..."
+		}
+		
 		h.sendChatbotMessage(msg, replyMsg, appID, token, encodingAESKey)
+	} else {
+		// v1.0.8: 非搜索命令时自动发送欢迎消息
+		welcomeMsg := buildWelcomeMessage(systemName)
+		h.sendChatbotMessage(msg, welcomeMsg, appID, token, encodingAESKey)
 	}
 }
 
@@ -330,9 +359,9 @@ func (h *WechatHandler) OfficialAccountVerify(c *gin.Context) {
 	nonce := c.Query("nonce")
 	echostr := c.Query("echostr")
 
-	// 从数据库获取Token
+	// 从数据库获取Token（统一使用 wx_* 前缀）
 	ctx := context.Background()
-	token, _ := h.configRepo.Get(ctx, "wechat_official_token")
+	token, _ := h.configRepo.Get(ctx, "wx_official_token")
 	if token == "" {
 		logger.Error("微信公众号Token未配置")
 		c.String(http.StatusBadRequest, "Token未配置")
@@ -396,11 +425,11 @@ func (h *WechatHandler) OfficialAccountCallback(c *gin.Context) {
 		return
 	}
 
-	// 创建搜索服务（注意：微信回调中无法使用转存服务，传nil）
+	// 创建搜索服务（公众号禁用转存，避免超过5秒响应限制）
 	cacheRepo := repository.NewCacheRepository()
 	searchService := service.NewSearchService(h.configRepo, cacheRepo, nil)
 
-	// 执行搜索
+	// 执行搜索（公众号禁用转存，直接返回原始链接）
 	ctx := context.Background()
 	results, err := searchService.Search(ctx, model.SearchRequest{
 		Keyword:  keyword,
@@ -414,9 +443,15 @@ func (h *WechatHandler) OfficialAccountCallback(c *gin.Context) {
 		return
 	}
 
+	// v1.0.8: 添加 nil 检查
+	if results == nil || results.Results == nil {
+		c.String(http.StatusOK, "success")
+		return
+	}
+
 	// 构建回复内容
 	var replyContent string
-	if err != nil || len(results.Results) == 0 {
+	if len(results.Results) == 0 {
 		replyContent = "未找到,减少关键词尝试搜索。"
 	} else {
 		for _, item := range results.Results {

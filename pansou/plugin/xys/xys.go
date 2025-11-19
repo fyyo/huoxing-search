@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
-	"xinyue-go/pansou/util/json"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
+	"huoxing-search/pansou/util/json"
 )
 
 const (

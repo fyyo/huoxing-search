@@ -1,14 +1,14 @@
-package api
+﻿package api
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/service"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/service"
 )
 
 // AuthHandler 认证处理器

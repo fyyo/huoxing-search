@@ -1,11 +1,11 @@
-package middleware
+﻿package middleware
 
 import (
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"xinyue-go/internal/pkg/logger"
+	"huoxing-search/internal/pkg/logger"
 )
 
 // Logger 日志中间件

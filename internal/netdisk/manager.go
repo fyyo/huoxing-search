@@ -1,17 +1,17 @@
-package netdisk
+﻿package netdisk
 
 import (
 	"context"
 	"fmt"
 
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/netdisk/aliyun"
-	"xinyue-go/internal/netdisk/baidu"
-	"xinyue-go/internal/netdisk/quark"
-	"xinyue-go/internal/netdisk/uc"
-	"xinyue-go/internal/netdisk/xunlei"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/netdisk/aliyun"
+	"huoxing-search/internal/netdisk/baidu"
+	"huoxing-search/internal/netdisk/quark"
+	"huoxing-search/internal/netdisk/uc"
+	"huoxing-search/internal/netdisk/xunlei"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/repository"
 )
 
 type netdiskManager struct {

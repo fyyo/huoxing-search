@@ -1,4 +1,4 @@
-package uc
+﻿package uc
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/repository"
 )
 
 // UCClient UC网盘客户端

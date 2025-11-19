@@ -1,15 +1,15 @@
-package api
+﻿package api
 
 import (
 	"html/template"
 	"path/filepath"
 	
 	"github.com/gin-gonic/gin"
-	"xinyue-go/internal/middleware"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/pkg/database"
-	"xinyue-go/internal/repository"
-	"xinyue-go/internal/service"
+	"huoxing-search/internal/middleware"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/database"
+	"huoxing-search/internal/repository"
+	"huoxing-search/internal/service"
 )
 
 // SetupRouter 设置路由
@@ -169,7 +169,8 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 				admin.POST("/configs/create", systemConfigHandler.Create)
 				admin.POST("/configs/update", systemConfigHandler.Update)
 				admin.POST("/configs/delete", systemConfigHandler.Delete)
-				admin.PUT("/configs/batch", systemConfigHandler.BatchUpdate)  // 改为PUT方法，路径为/batch
+				admin.PUT("/configs/batch", systemConfigHandler.BatchUpdate)  // 批量更新（需要conf_id）
+				admin.POST("/configs/batch-upsert", systemConfigHandler.BatchUpsert)  // 批量插入或更新（根据name）
 
 				// 管理员管理
 				adminManagementHandler := NewAdminManagementHandler()

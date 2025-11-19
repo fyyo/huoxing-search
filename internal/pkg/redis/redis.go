@@ -1,4 +1,4 @@
-package redis
+﻿package redis
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"xinyue-go/internal/pkg/config"
+	"huoxing-search/internal/pkg/config"
 )
 
 var Client *redis.Client

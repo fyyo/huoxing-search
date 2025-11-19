@@ -71,7 +71,6 @@ CREATE TABLE IF NOT EXISTS `qf_api_list` (
   `fixed_params` text COMMENT '固定参数(JSON)',
   `headers` text COMMENT '请求头(JSON)',
   `field_map` text COMMENT '字段映射(JSON)',
-  `count` int(11) DEFAULT '0' COMMENT '最多取多少个资源',
   `html_item` varchar(255) DEFAULT NULL COMMENT 'HTML列表项选择器',
   `html_title` varchar(255) DEFAULT NULL COMMENT 'HTML标题选择器',
   `html_url` varchar(255) DEFAULT NULL COMMENT 'HTML链接选择器',
@@ -189,12 +188,3 @@ INSERT INTO `qf_conf` (`name`, `value`, `title`, `description`, `group`, `type`,
 ('wx_official_appid', '', '公众号AppID', '微信公众号的AppID', 3, 1, 81, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
 ('wx_official_secret', '', '公众号Secret', '微信公众号的AppSecret', 3, 1, 82, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
 
--- ========================================
--- 安装说明
--- ========================================
--- 1. 导入此SQL文件到MySQL数据库
--- 2. 修改config.yaml中的数据库配置
--- 3. 运行 go run cmd/server/main.go 启动服务
--- 4. 访问 http://localhost:8080/admin 进入后台
--- 5. 默认账号: admin  密码: admin123
--- ========================================

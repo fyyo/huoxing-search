@@ -1,4 +1,4 @@
-package service
+﻿package service
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"xinyue-go/internal/netdisk"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/netdisk"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/repository"
 )
 
 // CleanupService 清理服务接口

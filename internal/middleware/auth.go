@@ -1,4 +1,4 @@
-package middleware
+﻿package middleware
 
 import (
 	"net/http"
@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/pkg/jwt"
-	"xinyue-go/internal/pkg/logger"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/jwt"
+	"huoxing-search/internal/pkg/logger"
 )
 
 // AuthMiddleware JWT认证中间件

@@ -1,4 +1,4 @@
-package api
+﻿package api
 
 import (
 	"database/sql"
@@ -23,7 +23,7 @@ type InstallHandler struct {
 // NewInstallHandler 创建安装处理器
 func NewInstallHandler() *InstallHandler {
 	return &InstallHandler{
-		installLockFile: "./install.lock",
+		installLockFile: "./data/install.lock",
 		sqlFile:         "./install/data.sql",
 	}
 }
@@ -314,7 +314,17 @@ app:
 `, req.DBHost, req.DBPort, req.DBUser, req.DBPassword, req.DBName, req.DBPrefix,
 		req.DBSSLMode, h.generateRandomString(32), req.SiteName)
 
-	if err := os.WriteFile("./config.yaml", []byte(configContent), 0644); err != nil {
+	// 确保data目录存在
+	if err := os.MkdirAll("./data", 0755); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    500,
+			"message": "创建data目录失败: " + err.Error(),
+		})
+		return
+	}
+
+	// 保存配置文件到data目录
+	if err := os.WriteFile("./data/config.yaml", []byte(configContent), 0644); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    500,
 			"message": "生成配置文件失败: " + err.Error(),
@@ -322,7 +332,7 @@ app:
 		return
 	}
 
-	// 7. 创建安装锁文件
+	// 7. 创建安装锁文件到data目录
 	if err := os.WriteFile(h.installLockFile, []byte("installed"), 0644); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    500,

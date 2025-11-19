@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"xinyue-go/pansou/model"
+	"huoxing-search/pansou/model"
 )
 
 // normalizeUrl 标准化URL，将URL编码的中文部分解码为中文，用于去重

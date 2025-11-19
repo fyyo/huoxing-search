@@ -1,10 +1,11 @@
-package repository
+﻿package repository
 
 import (
 	"context"
 	"fmt"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/database"
+	"time"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/database"
 
 	"gorm.io/gorm"
 )
@@ -22,6 +23,7 @@ type ConfigRepository interface {
 	Delete(ctx context.Context, id int) error
 	BatchDelete(ctx context.Context, ids []int) error
 	BatchUpdate(ctx context.Context, configs []model.Config) error
+	BatchUpsert(ctx context.Context, configs map[string]string) error
 }
 
 type configRepository struct {
@@ -148,6 +150,67 @@ func (r *configRepository) BatchUpdate(ctx context.Context, configs []model.Conf
 				return err
 			}
 		}
+		return nil
+	})
+}
+
+// BatchUpsert 批量插入或更新配置（根据name）
+func (r *configRepository) BatchUpsert(ctx context.Context, configs map[string]string) error {
+	if len(configs) == 0 {
+		return fmt.Errorf("配置列表为空")
+	}
+	
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		now := time.Now().Unix()
+		createCount := 0
+		updateCount := 0
+		
+		for name, value := range configs {
+			// 先查询是否存在
+			var existing model.Config
+			err := tx.Where("name = ?", name).First(&existing).Error
+			
+			if err == gorm.ErrRecordNotFound {
+				// 不存在则创建，设置必要的默认值
+				newConfig := model.Config{
+					Name:        name,
+					Value:       value,
+					Title:       name,  // 标题默认使用name
+					Description: "",    // 描述为空
+					Group:       0,     // 默认分组：基本配置
+					Type:        1,     // 默认类型：文本输入
+					Options:     "",    // 选项为空
+					Sort:        0,     // 默认排序
+					Status:      1,     // 默认启用
+					CreateTime:  now,
+					UpdateTime:  now,
+				}
+				
+				if err := tx.Create(&newConfig).Error; err != nil {
+					return fmt.Errorf("创建配置 %s 失败: %w", name, err)
+				}
+				createCount++
+				fmt.Printf("✅ [BatchUpsert] 创建配置: %s = %s (ID=%d)\n", name, value, newConfig.ConfID)
+			} else if err != nil {
+				return fmt.Errorf("查询配置 %s 失败: %w", name, err)
+			} else {
+				// 存在则更新
+				result := tx.Model(&model.Config{}).
+					Where("name = ?", name).
+					Updates(map[string]interface{}{
+						"value":       value,
+						"update_time": now,
+					})
+				
+				if result.Error != nil {
+					return fmt.Errorf("更新配置 %s 失败: %w", name, result.Error)
+				}
+				updateCount++
+				fmt.Printf("✅ [BatchUpsert] 更新配置: %s = %s (影响行数=%d)\n", name, value, result.RowsAffected)
+			}
+		}
+		
+		fmt.Printf("📊 [BatchUpsert] 完成: 创建=%d, 更新=%d, 总数=%d\n", createCount, updateCount, len(configs))
 		return nil
 	})
 }

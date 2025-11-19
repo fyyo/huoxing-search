@@ -1,30 +1,13 @@
 version: '3.8'
 
 services:
-  # Xinyue-Go 一体化服务 (包含API和Pansou搜索引擎)
-  xinyue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: xinyue-app
+  huoxing-app:
+    image: huoxing-search:latest
+    container_name: huoxing-app
     restart: always
     ports:
-      - "6060:6060"  # API服务端口
-      - "8888:8888"  # Pansou搜索引擎端口
+      - "6060:6060"
+    volumes:
+      - ./data:/app/data
     environment:
       - TZ=Asia/Shanghai
-      - GIN_MODE=release
-    volumes:
-      - ./logs:/app/logs
-      - ./config.yaml:/app/config.yaml:ro
-    networks:
-      - xinyue-net
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:6060/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-networks:
-  xinyue-net:
-    driver: bridge

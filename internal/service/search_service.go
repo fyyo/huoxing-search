@@ -7,80 +7,80 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"xinyue-go/pansou/config"
-	pansouModel "xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
-	pansouService "xinyue-go/pansou/service"
-	"xinyue-go/pansou/util"
-	"xinyue-go/pansou/util/cache"
+	"huoxing-search/pansou/config"
+	pansouModel "huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
+	pansouService "huoxing-search/pansou/service"
+	"huoxing-search/pansou/util"
+	"huoxing-search/pansou/util/cache"
 
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/repository"
 	
 	// 导入所有Pansou插件以触发自动注册
-	_ "xinyue-go/pansou/plugin/hdr4k"
-	_ "xinyue-go/pansou/plugin/gying"
-	_ "xinyue-go/pansou/plugin/pan666"
-	_ "xinyue-go/pansou/plugin/hunhepan"
-	_ "xinyue-go/pansou/plugin/jikepan"
-	_ "xinyue-go/pansou/plugin/panwiki"
-	_ "xinyue-go/pansou/plugin/pansearch"
-	_ "xinyue-go/pansou/plugin/panta"
-	_ "xinyue-go/pansou/plugin/qupansou"
-	_ "xinyue-go/pansou/plugin/susu"
-	_ "xinyue-go/pansou/plugin/thepiratebay"
-	_ "xinyue-go/pansou/plugin/wanou"
-	_ "xinyue-go/pansou/plugin/xuexizhinan"
-	_ "xinyue-go/pansou/plugin/panyq"
-	_ "xinyue-go/pansou/plugin/zhizhen"
-	_ "xinyue-go/pansou/plugin/labi"
-	_ "xinyue-go/pansou/plugin/muou"
-	_ "xinyue-go/pansou/plugin/ouge"
-	_ "xinyue-go/pansou/plugin/shandian"
-	_ "xinyue-go/pansou/plugin/duoduo"
-	_ "xinyue-go/pansou/plugin/huban"
-	_ "xinyue-go/pansou/plugin/cyg"
-	_ "xinyue-go/pansou/plugin/erxiao"
-	_ "xinyue-go/pansou/plugin/miaoso"
-	_ "xinyue-go/pansou/plugin/fox4k"
-	_ "xinyue-go/pansou/plugin/pianku"
-	_ "xinyue-go/pansou/plugin/clmao"
-	_ "xinyue-go/pansou/plugin/wuji"
-	_ "xinyue-go/pansou/plugin/cldi"
-	_ "xinyue-go/pansou/plugin/xiaozhang"
-	_ "xinyue-go/pansou/plugin/libvio"
-	_ "xinyue-go/pansou/plugin/leijing"
-	_ "xinyue-go/pansou/plugin/xb6v"
-	_ "xinyue-go/pansou/plugin/xys"
-	_ "xinyue-go/pansou/plugin/ddys"
-	_ "xinyue-go/pansou/plugin/hdmoli"
-	_ "xinyue-go/pansou/plugin/yuhuage"
-	_ "xinyue-go/pansou/plugin/u3c3"
-	_ "xinyue-go/pansou/plugin/javdb"
-	_ "xinyue-go/pansou/plugin/clxiong"
-	_ "xinyue-go/pansou/plugin/jutoushe"
-	_ "xinyue-go/pansou/plugin/sdso"
-	_ "xinyue-go/pansou/plugin/xiaoji"
-	_ "xinyue-go/pansou/plugin/xdyh"
-	_ "xinyue-go/pansou/plugin/haisou"
-	_ "xinyue-go/pansou/plugin/bixin"
-	_ "xinyue-go/pansou/plugin/nyaa"
-	_ "xinyue-go/pansou/plugin/djgou"
-	_ "xinyue-go/pansou/plugin/xinjuc"
-	_ "xinyue-go/pansou/plugin/aikanzy"
-	_ "xinyue-go/pansou/plugin/qupanshe"
-	_ "xinyue-go/pansou/plugin/xdpan"
-	_ "xinyue-go/pansou/plugin/discourse"
-	_ "xinyue-go/pansou/plugin/yunsou"
-	_ "xinyue-go/pansou/plugin/ahhhhfs"
-	_ "xinyue-go/pansou/plugin/nsgame"
-	_ "xinyue-go/pansou/plugin/quark4k"
-	_ "xinyue-go/pansou/plugin/quarksoo"
-	_ "xinyue-go/pansou/plugin/sousou"
-	_ "xinyue-go/pansou/plugin/ash"
-	_ "xinyue-go/pansou/plugin/qqpd"
-	_ "xinyue-go/pansou/plugin/weibo"
+	_ "huoxing-search/pansou/plugin/hdr4k"
+	_ "huoxing-search/pansou/plugin/gying"
+	_ "huoxing-search/pansou/plugin/pan666"
+	_ "huoxing-search/pansou/plugin/hunhepan"
+	_ "huoxing-search/pansou/plugin/jikepan"
+	_ "huoxing-search/pansou/plugin/panwiki"
+	_ "huoxing-search/pansou/plugin/pansearch"
+	_ "huoxing-search/pansou/plugin/panta"
+	_ "huoxing-search/pansou/plugin/qupansou"
+	_ "huoxing-search/pansou/plugin/susu"
+	_ "huoxing-search/pansou/plugin/thepiratebay"
+	_ "huoxing-search/pansou/plugin/wanou"
+	_ "huoxing-search/pansou/plugin/xuexizhinan"
+	_ "huoxing-search/pansou/plugin/panyq"
+	_ "huoxing-search/pansou/plugin/zhizhen"
+	_ "huoxing-search/pansou/plugin/labi"
+	_ "huoxing-search/pansou/plugin/muou"
+	_ "huoxing-search/pansou/plugin/ouge"
+	_ "huoxing-search/pansou/plugin/shandian"
+	_ "huoxing-search/pansou/plugin/duoduo"
+	_ "huoxing-search/pansou/plugin/huban"
+	_ "huoxing-search/pansou/plugin/cyg"
+	_ "huoxing-search/pansou/plugin/erxiao"
+	_ "huoxing-search/pansou/plugin/miaoso"
+	_ "huoxing-search/pansou/plugin/fox4k"
+	_ "huoxing-search/pansou/plugin/pianku"
+	_ "huoxing-search/pansou/plugin/clmao"
+	_ "huoxing-search/pansou/plugin/wuji"
+	_ "huoxing-search/pansou/plugin/cldi"
+	_ "huoxing-search/pansou/plugin/xiaozhang"
+	_ "huoxing-search/pansou/plugin/libvio"
+	_ "huoxing-search/pansou/plugin/leijing"
+	_ "huoxing-search/pansou/plugin/xb6v"
+	_ "huoxing-search/pansou/plugin/xys"
+	_ "huoxing-search/pansou/plugin/ddys"
+	_ "huoxing-search/pansou/plugin/hdmoli"
+	_ "huoxing-search/pansou/plugin/yuhuage"
+	_ "huoxing-search/pansou/plugin/u3c3"
+	_ "huoxing-search/pansou/plugin/javdb"
+	_ "huoxing-search/pansou/plugin/clxiong"
+	_ "huoxing-search/pansou/plugin/jutoushe"
+	_ "huoxing-search/pansou/plugin/sdso"
+	_ "huoxing-search/pansou/plugin/xiaoji"
+	_ "huoxing-search/pansou/plugin/xdyh"
+	_ "huoxing-search/pansou/plugin/haisou"
+	_ "huoxing-search/pansou/plugin/bixin"
+	_ "huoxing-search/pansou/plugin/nyaa"
+	_ "huoxing-search/pansou/plugin/djgou"
+	_ "huoxing-search/pansou/plugin/xinjuc"
+	_ "huoxing-search/pansou/plugin/aikanzy"
+	_ "huoxing-search/pansou/plugin/qupanshe"
+	_ "huoxing-search/pansou/plugin/xdpan"
+	_ "huoxing-search/pansou/plugin/discourse"
+	_ "huoxing-search/pansou/plugin/yunsou"
+	_ "huoxing-search/pansou/plugin/ahhhhfs"
+	_ "huoxing-search/pansou/plugin/nsgame"
+	_ "huoxing-search/pansou/plugin/quark4k"
+	_ "huoxing-search/pansou/plugin/quarksoo"
+	_ "huoxing-search/pansou/plugin/sousou"
+	_ "huoxing-search/pansou/plugin/ash"
+	_ "huoxing-search/pansou/plugin/qqpd"
+	_ "huoxing-search/pansou/plugin/weibo"
 )
 
 // SearchService 搜索服务（集成Pansou）
@@ -174,14 +174,25 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 		}, nil
 	}
 	
-	// 设置最大返回数量
-	maxCount := req.MaxCount
-	if maxCount <= 0 {
-		maxCount, _ = s.configRepo.GetInt(ctx, model.ConfMaxSearchResults)
-		if maxCount <= 0 {
-			maxCount = 5
-		}
+	// 📊 从配置表读取最大搜索结果数 (max_search_results)
+	// 优先使用数据库配置，如果读取失败或为0，则使用请求参数或默认值
+	maxSearchResults := 5  // 默认值
+	if val, err := s.configRepo.GetInt(ctx, "max_search_results"); err == nil && val > 0 {
+		maxSearchResults = val
+	} else if req.MaxCount > 0 {
+		maxSearchResults = req.MaxCount
 	}
+	
+	// 📊 从配置表读取最大转存数量 (max_transfer_count)
+	maxTransferCount := 2  // 默认值
+	if val, err := s.configRepo.GetInt(ctx, "max_transfer_count"); err == nil && val > 0 {
+		maxTransferCount = val
+	}
+	
+	logger.Info("📊 配置参数",
+		zap.Int("max_search_results", maxSearchResults),
+		zap.Int("max_transfer_count", maxTransferCount),
+	)
 	
 	// 🔍 第一步: 优先搜索本地数据库
 	logger.Info("开始搜索本地数据库",
@@ -189,7 +200,7 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 		zap.Int("pan_type", req.PanType),
 	)
 	
-	localSources, err := s.sourceRepo.SearchByKeywordAndType(ctx, req.Keyword, req.PanType, maxCount)
+	localSources, err := s.sourceRepo.SearchByKeywordAndType(ctx, req.Keyword, req.PanType, maxSearchResults)
 	if err == nil && len(localSources) > 0 {
 		logger.Info("✅ 本地数据库命中",
 			zap.Int("count", len(localSources)),
@@ -220,15 +231,15 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 	cloudTypes := []string{cloudType}
 	
 	// 调用Pansou搜索(获取20个结果用于转存)
-	// 使用 "time" 模式按时间排序，获取最新资源
+	// 🔧 关键修复：让pansou使用所有可用插件
 	pansouResp, err := s.pansouService.Search(
 		req.Keyword,
-		config.AppConfig.DefaultChannels,
+		[]string{},                      // 🔧 改为空数组，让pansou使用默认配置（而非只用1个TG频道）
 		config.AppConfig.DefaultConcurrency,
-		false,
-		"time",  // 改为time模式，按时间排序
-		"all",
-		nil,
+		false,                           // 不强制刷新，使用缓存
+		"merged_by_type",                // 🔧 返回按类型合并的结果（包含多插件来源）
+		"all",                           // ✅ 搜索所有来源（TG频道 + 插件）
+		nil,                             // ✅ nil = 使用所有可用插件（50+插件）
 		cloudTypes,
 		nil,
 	)
@@ -236,8 +247,13 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 		return nil, fmt.Errorf("Pansou搜索失败: %w", err)
 	}
 	
-	// 转换Pansou结果
-	pansouResults := s.convertPansouResults(pansouResp, cloudType, 20) // 最多获取20个用于转存
+	// 转换Pansou结果 - 获取足够多的结果用于后续展示和转存
+	// 获取 max(maxSearchResults * 4, 20) 个结果，确保有足够的资源进行转存筛选
+	fetchCount := maxSearchResults * 4
+	if fetchCount < 20 {
+		fetchCount = 20
+	}
+	pansouResults := s.convertPansouResults(pansouResp, cloudType, fetchCount)
 	
 	if len(pansouResults) == 0 {
 		logger.Info("Pansou搜索无结果")
@@ -252,7 +268,8 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 	// 如果网盘未配置，跳过转存，直接返回原始搜索结果
 	logger.Info("📦 Pansou返回结果,检查是否可以转存",
 		zap.Int("count", len(pansouResults)),
-		zap.Int("target_display", maxCount),
+		zap.Int("target_display", maxSearchResults),
+		zap.Int("target_transfer", maxTransferCount),
 	)
 	
 	// 检查网盘是否已配置
@@ -264,8 +281,8 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 			zap.Int("pan_type", req.PanType),
 		)
 		
-		// 限制返回数量
-		displayCount := maxCount
+		// 限制返回数量为配置的最大搜索结果数
+		displayCount := maxSearchResults
 		if displayCount > len(pansouResults) {
 			displayCount = len(pansouResults)
 		}
@@ -284,11 +301,35 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 		}, nil
 	}
 	
-	// 网盘已配置，执行转存
+	// 网盘已配置，检查转存服务是否可用
+	if s.transferService == nil {
+		logger.Warn("⚠️ 转存服务未初始化（可能在微信回调中），跳过转存")
+		
+		// 限制返回数量为配置的最大搜索结果数
+		displayCount := maxSearchResults
+		if displayCount > len(pansouResults) {
+			displayCount = len(pansouResults)
+		}
+		
+		finalResults := make([]model.SearchResult, 0, displayCount)
+		for i := 0; i < displayCount; i++ {
+			result := pansouResults[i]
+			result.IsTransferred = false
+			finalResults = append(finalResults, result)
+		}
+		
+		return &model.SearchResponse{
+			Total:   len(finalResults),
+			Results: finalResults,
+			Message: "搜索成功(原始链接，转存服务未初始化)",
+		}, nil
+	}
+	
+	// 执行转存
 	logger.Info("✅ 网盘已配置，开始批量转存（两阶段处理）",
 		zap.Int("count", len(pansouResults)),
-		zap.Int("target_transfer", 2),  // 目标转存2个
-		zap.Int("target_display", maxCount),  // 目标展示数量
+		zap.Int("target_transfer", maxTransferCount),      // 🔧 使用配置的转存数量
+		zap.Int("target_display", maxSearchResults),       // 🔧 使用配置的展示数量
 	)
 	
 	// 获取ExpiredType配置(1=永久, 2=临时)
@@ -300,9 +341,9 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 	transferReq := &model.TransferRequest{
 		Items:       pansouResults,
 		PanType:     req.PanType,
-		MaxCount:    2,           // 转存2个
-		MaxDisplay:  maxCount,    // 总共展示maxCount个（如5个）
-		ExpiredType: expiredType, // 设置过期类型（临时资源）
+		MaxCount:    maxTransferCount,    // 🔧 使用配置表中的转存数量
+		MaxDisplay:  maxSearchResults,    // 🔧 使用配置表中的展示数量
+		ExpiredType: expiredType,         // 设置过期类型（临时资源）
 	}
 	
 	transferResp, err := s.transferService.TransferAndSave(ctx, transferReq)
@@ -310,8 +351,8 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 		// 转存失败，但不影响搜索功能，返回原始链接
 		logger.Warn("转存失败，返回原始搜索结果", zap.Error(err))
 		
-		// 限制返回数量
-		displayCount := maxCount
+		// 限制返回数量为配置的最大搜索结果数
+		displayCount := maxSearchResults
 		if displayCount > len(pansouResults) {
 			displayCount = len(pansouResults)
 		}
@@ -333,8 +374,8 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 	if len(transferResp.Results) == 0 {
 		logger.Warn("转存全部失败，返回原始搜索结果")
 		
-		// 限制返回数量
-		displayCount := maxCount
+		// 限制返回数量为配置的最大搜索结果数
+		displayCount := maxSearchResults
 		if displayCount > len(pansouResults) {
 			displayCount = len(pansouResults)
 		}

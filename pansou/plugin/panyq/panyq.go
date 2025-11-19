@@ -2,7 +2,7 @@
 
 import (
 	"crypto/tls"
-	"xinyue-go/pansou/util/json"
+	"huoxing-search/pansou/util/json"
 	"fmt"
 	"io"
 	"net"
@@ -16,8 +16,8 @@ import (
 	"time"
 	"net/http/cookiejar"
 
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
 )
 
 // 常量定义

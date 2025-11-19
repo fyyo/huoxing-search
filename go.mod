@@ -1,4 +1,4 @@
-module xinyue-go
+module huoxing-search
 
 go 1.24.1
 

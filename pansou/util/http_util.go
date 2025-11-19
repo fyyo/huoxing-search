@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"golang.org/x/net/proxy"
-	"xinyue-go/pansou/config"
+	"huoxing-search/pansou/config"
 )
 
 // 全局HTTP客户端

@@ -1,4 +1,4 @@
-package baidu
+﻿package baidu
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/repository"
 )
 
 // BaiduClient 百度网盘客户端

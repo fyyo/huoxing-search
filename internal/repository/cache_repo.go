@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"xinyue-go/internal/pkg/redis"
+	"huoxing-search/internal/pkg/redis"
 )
 
 // CacheRepository 缓存仓储接口

@@ -1,4 +1,4 @@
-package service
+﻿package service
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"xinyue-go/internal/model"
-	"xinyue-go/internal/netdisk"
-	"xinyue-go/internal/pkg/config"
-	"xinyue-go/internal/pkg/logger"
-	"xinyue-go/internal/repository"
+	"huoxing-search/internal/model"
+	"huoxing-search/internal/netdisk"
+	"huoxing-search/internal/pkg/config"
+	"huoxing-search/internal/pkg/logger"
+	"huoxing-search/internal/repository"
 )
 
 // TransferService 转存服务接口

@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"xinyue-go/pansou/model"
-	"xinyue-go/pansou/plugin"
-	"xinyue-go/pansou/util/json"
+	"huoxing-search/pansou/model"
+	"huoxing-search/pansou/plugin"
+	"huoxing-search/pansou/util/json"
 )
 
 // 在init函数中注册插件

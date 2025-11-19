@@ -1,4 +1,4 @@
-package database
+﻿package database
 
 import (
 	"crypto/tls"
@@ -11,7 +11,7 @@ import (
 	gorm_mysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"xinyue-go/internal/pkg/config"
+	"huoxing-search/internal/pkg/config"
 )
 
 var DB *gorm.DB
