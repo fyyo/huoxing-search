@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"huoxing-search/internal/model"
@@ -29,13 +30,47 @@ import (
 
 // WechatHandler 微信处理器
 type WechatHandler struct {
-	configRepo repository.ConfigRepository
+	configRepo     repository.ConfigRepository
+	processingMsgs sync.Map // 消息去重: msgID -> 处理时间
 }
 
 // NewWechatHandler 创建微信处理器
 func NewWechatHandler(configRepo repository.ConfigRepository) *WechatHandler {
-	return &WechatHandler{
+	handler := &WechatHandler{
 		configRepo: configRepo,
+	}
+	// 启动清理过期消息ID的协程
+	go handler.cleanupExpiredMessages()
+	return handler
+}
+
+// cleanupExpiredMessages 清理过期的消息ID（每分钟清理一次）
+func (h *WechatHandler) cleanupExpiredMessages() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	
+	for range ticker.C {
+		now := time.Now()
+		h.processingMsgs.Range(func(key, value interface{}) bool {
+			keyStr := key.(string)
+			processTime := value.(time.Time)
+			
+			// 🔥 区分消息去重ID和欢迎消息标记
+			// 消息去重ID格式: "user:type:content"
+			// 欢迎消息标记格式: "chatbot_welcome:user"
+			
+			if strings.HasPrefix(keyStr, "chatbot_welcome:") {
+				// ✅ 欢迎消息标记：永不清理（用户首次访问后永久记录）
+				// 除非服务重启，否则不会再次发送欢迎消息
+				return true
+			} else {
+				// 消息去重ID：5分钟后清理（允许用户重新搜索相同内容）
+				if now.Sub(processTime) > 5*time.Minute {
+					h.processingMsgs.Delete(key)
+				}
+			}
+			return true
+		})
 	}
 }
 
@@ -113,124 +148,172 @@ func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
 		return
 	}
 
-	// 创建完整的服务（对话平台支持转存，响应时间无严格限制）
-	cacheRepo := repository.NewCacheRepository()
-	transferService := service.NewTransferService(config.GlobalConfig)
-	searchService := service.NewSearchService(h.configRepo, cacheRepo, transferService)
+	// 🔥 消息去重：生成唯一标识
+	msgID := fmt.Sprintf("%s:%s:%s", msg.UserID, msg.Content.MsgType, msg.Content.Msg)
+	
+	// 检查是否正在处理相同消息
+	if _, exists := h.processingMsgs.LoadOrStore(msgID, time.Now()); exists {
+		logger.Info("⚠️ 检测到重复消息，忽略",
+			zap.String("user_id", msg.UserID),
+			zap.String("msg", msg.Content.Msg))
+		// 立即返回成功，避免微信重试
+		c.JSON(http.StatusOK, gin.H{"code": 200})
+		return
+	}
 
-	// 处理消息并发送回复
-	h.processChatbotMessage(msg, appID, token, encodingAESKey, systemName, searchService)
-
+	// ⚡ 立即响应微信服务器（<1秒），避免触发重试
 	c.JSON(http.StatusOK, gin.H{"code": 200})
+
+	// 🚀 异步处理消息（在后台执行搜索和转存）
+	go func() {
+		defer func() {
+			// 处理完成后3分钟删除消息ID（防止用户短时间内重复搜索相同内容）
+			time.AfterFunc(3*time.Minute, func() {
+				h.processingMsgs.Delete(msgID)
+			})
+		}()
+
+		// 创建完整的服务（对话平台支持转存）
+		cacheRepo := repository.NewCacheRepository()
+		transferService := service.NewTransferService(config.GlobalConfig)
+		searchService := service.NewSearchService(h.configRepo, cacheRepo, transferService)
+
+		// 处理消息并发送回复
+		h.processChatbotMessage(msg, appID, token, encodingAESKey, systemName, searchService)
+	}()
 }
 
 // decryptChatbotMessage 解密对话平台消息
+// 参考PHP Chatbot.php第206-260行的decrypt()和decode()函数
 func (h *WechatHandler) decryptChatbotMessage(encrypted, encodingAESKey, appID string) (*ChatbotMessage, error) {
-	// Base64解码EncodingAESKey（添加'='填充）
-	key, err := base64.StdEncoding.DecodeString(encodingAESKey + "=")
+	// EncodingAESKey是43位字符，Base64解码后是32字节
+	// PHP代码添加"="是为了补齐Base64，Go的StdEncoding会自动处理
+	var aesKey []byte
+	var err error
+	
+	// 先尝试直接解码
+	aesKey, err = base64.StdEncoding.DecodeString(encodingAESKey)
 	if err != nil {
-		return nil, fmt.Errorf("解码AES密钥失败: %w", err)
+		// 如果失败，尝试添加"="填充
+		aesKey, err = base64.StdEncoding.DecodeString(encodingAESKey + "=")
+		if err != nil {
+			return nil, fmt.Errorf("解码AES密钥失败: %w", err)
+		}
+	}
+	
+	// 验证密钥长度
+	if len(aesKey) < 32 {
+		return nil, fmt.Errorf("AES密钥长度不足: %d字节，需要至少32字节", len(aesKey))
 	}
 
-	// encrypted 是 Base64 编码的密文，需要解码
-	ciphertext, err := base64.StdEncoding.DecodeString(encrypted)
+	// 解码密文 (PHP第211行openssl_decrypt会自动Base64解码)
+	cipherData, err := base64.StdEncoding.DecodeString(encrypted)
 	if err != nil {
-		return nil, fmt.Errorf("解码加密数据失败: %w", err)
+		return nil, fmt.Errorf("解码密文失败: %w", err)
 	}
 
-	// AES-256-CBC 解密
-	block, err := aes.NewCipher(key[:32])
+	// 检查长度
+	if len(cipherData)%aes.BlockSize != 0 {
+		return nil, fmt.Errorf("密文长度无效: %d", len(cipherData))
+	}
+
+	// 创建AES cipher
+	block, err := aes.NewCipher(aesKey[:32])
 	if err != nil {
 		return nil, fmt.Errorf("创建AES cipher失败: %w", err)
 	}
 
-	if len(ciphertext) < aes.BlockSize {
-		return nil, fmt.Errorf("密文太短: %d字节", len(ciphertext))
-	}
+	// IV = aesKey的前16字节 (PHP第210行: $iv = substr($this->key, 0, 16))
+	iv := aesKey[:16]
 
-	// 密文长度必须是块大小的倍数
-	if len(ciphertext)%aes.BlockSize != 0 {
-		return nil, fmt.Errorf("密文长度不是块大小的倍数: %d", len(ciphertext))
-	}
-
-	iv := key[:16]
+	// 解密 (PHP第211行: openssl_decrypt with OPENSSL_ZERO_PADDING)
+	plaintext := make([]byte, len(cipherData))
 	mode := cipher.NewCBCDecrypter(block, iv)
-	
-	// 创建新的切片用于存放解密结果
-	plaintext := make([]byte, len(ciphertext))
-	mode.CryptBlocks(plaintext, ciphertext)
+	mode.CryptBlocks(plaintext, cipherData)
 
-	// 去除PKCS7填充
-	plaintext = pkcs7Unpad(plaintext)
-	
-	logger.Info("解密成功",
-		zap.Int("plaintext_len", len(plaintext)),
-		zap.String("plaintext_preview", fmt.Sprintf("%x...", plaintext[:min(32, len(plaintext))])))
+	// 去除PKCS7填充 (PHP第231行: $result = $this->decode($decrypted))
+	// decode函数在267-275行
+	plaintext = removePKCS7Padding(plaintext)
 
-	// 提取XML内容
-	// 格式: 16位随机字符串 + 4字节消息长度(网络字节序) + XML内容 + AppID
-	if len(plaintext) < 20 {
+	// 提取XML内容 (PHP第233-239行)
+	if len(plaintext) < 20 { // 16字节随机数 + 4字节长度
 		return nil, fmt.Errorf("解密后数据太短: %d字节", len(plaintext))
 	}
 
-	// 跳过前16字节随机字符串
+	// 跳过16字节随机数 (PHP第235行)
 	content := plaintext[16:]
-	
-	// 读取4字节的消息长度（大端序）
-	if len(content) < 4 {
-		return nil, fmt.Errorf("无法读取消息长度: 可用%d字节", len(content))
-	}
-	
+
+	// 读取4字节网络字节序的XML长度 (PHP第236行)
 	xmlLen := binary.BigEndian.Uint32(content[:4])
-	
-	// 验证xmlLen的合理性
-	availableLen := len(content) - 4
-	if xmlLen == 0 || int(xmlLen) > availableLen {
-		return nil, fmt.Errorf("消息长度异常: xmlLen=%d, 可用=%d字节", xmlLen, availableLen)
+	if int(xmlLen) > len(content)-4 || xmlLen == 0 {
+		return nil, fmt.Errorf("XML长度异常: %d, 可用: %d", xmlLen, len(content)-4)
 	}
-	
-	// 提取XML内容
-	xmlContent := content[4 : 4+xmlLen]
-	
-	logger.Info("提取XML内容",
-		zap.Uint32("xml_len", xmlLen),
-		zap.String("xml_preview", string(xmlContent[:min(100, len(xmlContent))])))
+
+	// 提取XML内容 (PHP第238行)
+	xmlData := content[4 : 4+xmlLen]
+
+	// 提取AppID (PHP第239行)
+	receivedAppID := string(content[4+xmlLen:])
+
+	// 验证AppID (PHP第250行)
+	if strings.TrimSpace(receivedAppID) != appID {
+		logger.Warn("AppID不匹配",
+			zap.String("expected", appID),
+			zap.String("received", receivedAppID))
+	}
 
 	// 解析XML
 	var msg ChatbotMessage
-	if err := xml.Unmarshal(xmlContent, &msg); err != nil {
-		return nil, fmt.Errorf("解析XML失败: %w, XML内容: %s", err, string(xmlContent))
-	}
-
-	// 验证AppID
-	fromAppID := string(content[4+xmlLen:])
-	fromAppID = strings.TrimRight(fromAppID, "\x00") // 去除填充的空字节
-	
-	if fromAppID != appID {
-		logger.Warn("AppID不匹配",
-			zap.String("expected", appID),
-			zap.String("actual", fromAppID))
+	if err := xml.Unmarshal(xmlData, &msg); err != nil {
+		return nil, fmt.Errorf("解析XML失败: %w", err)
 	}
 
 	return &msg, nil
 }
 
-// min 返回两个整数中的较小值
-func min(a, b int) int {
-	if a < b {
-		return a
+// removePKCS7Padding 去除PKCS7填充
+// 对应PHP Chatbot.php第267-275行的decode()函数
+func removePKCS7Padding(data []byte) []byte {
+	length := len(data)
+	if length == 0 {
+		return data
 	}
-	return b
+
+	// PHP第270行: $pad = ord(substr($text, -1));
+	paddingLen := int(data[length-1])
+
+	// PHP第271-273行: if ($pad < 1 || $pad > 32) { $pad = 0; }
+	if paddingLen < 1 || paddingLen > 32 {
+		paddingLen = 0
+	}
+
+	// PHP第274行: return substr($text, 0, (strlen($text) - $pad));
+	return data[:length-paddingLen]
 }
 
 // processChatbotMessage 处理对话平台消息
 func (h *WechatHandler) processChatbotMessage(msg *ChatbotMessage, appID, token, encodingAESKey, systemName string, searchService *service.SearchService) {
 	ctx := context.Background()
 
-	// 如果不是文本消息,发送欢迎语
-	if msg.Content.MsgType != "text" || msg.Content.Msg == "" {
-		welcomeMsg := buildWelcomeMessage(systemName)
-		h.sendChatbotMessage(msg, welcomeMsg, appID, token, encodingAESKey)
+	// 如果不是文本消息或消息为空，发送欢迎消息（但每个用户只发一次）
+	if msg.Content.MsgType != "text" || strings.TrimSpace(msg.Content.Msg) == "" {
+		// 检查该用户是否已经收到过欢迎消息
+		welcomeKey := fmt.Sprintf("chatbot_welcome:%s", msg.UserID)
+		if _, alreadySent := h.processingMsgs.Load(welcomeKey); !alreadySent {
+			logger.Info("✅ 首次访问，发送欢迎消息",
+				zap.String("user_id", msg.UserID),
+				zap.String("msg_type", msg.Content.MsgType))
+			
+			// 发送欢迎消息
+			welcomeMsg := buildWelcomeMessage(systemName)
+			h.sendChatbotMessage(msg, welcomeMsg, appID, token, encodingAESKey)
+			
+			// ✅ 永久记录（除非服务重启，否则该用户不会再收到欢迎消息）
+			h.processingMsgs.Store(welcomeKey, time.Now())
+		} else {
+			logger.Info("⏭️ 用户已收到欢迎消息，忽略后续空消息",
+				zap.String("user_id", msg.UserID))
+		}
 		return
 	}
 
@@ -581,19 +664,6 @@ func pkcs7Pad(data []byte, blockSize int) []byte {
 		padtext[i] = byte(padding)
 	}
 	return append(data, padtext...)
-}
-
-// pkcs7Unpad PKCS7去填充
-func pkcs7Unpad(data []byte) []byte {
-	length := len(data)
-	if length == 0 {
-		return data
-	}
-	padding := int(data[length-1])
-	if padding < 1 || padding > 32 {
-		return data
-	}
-	return data[:length-padding]
 }
 
 // getRandomStr 生成随机字符串

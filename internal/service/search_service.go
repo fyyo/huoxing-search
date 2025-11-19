@@ -175,12 +175,14 @@ func (s *SearchService) Search(ctx context.Context, req model.SearchRequest) (*m
 	}
 	
 	// 📊 从配置表读取最大搜索结果数 (max_search_results)
-	// 优先使用数据库配置，如果读取失败或为0，则使用请求参数或默认值
+	// 如果请求明确指定了MaxCount（微信场景），则强制使用请求值，不受数据库配置影响
 	maxSearchResults := 5  // 默认值
-	if val, err := s.configRepo.GetInt(ctx, "max_search_results"); err == nil && val > 0 {
-		maxSearchResults = val
-	} else if req.MaxCount > 0 {
+	if req.MaxCount > 0 {
+		// 请求明确指定了数量（如微信限制10条），强制使用此值
 		maxSearchResults = req.MaxCount
+	} else if val, err := s.configRepo.GetInt(ctx, "max_search_results"); err == nil && val > 0 {
+		// 请求未指定，使用数据库配置
+		maxSearchResults = val
 	}
 	
 	// 📊 从配置表读取最大转存数量 (max_transfer_count)
