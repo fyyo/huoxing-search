@@ -82,6 +82,7 @@ type ChatbotMessage struct {
 	AppID   string   `xml:"appid"`
 	UserID  string   `xml:"userid"`
 	Channel string   `xml:"channel"`
+	MsgID   string   `xml:"msgid"`  // 🔥 新增：微信消息ID，用于去重
 	Content struct {
 		MsgType string `xml:"msgtype"`
 		Msg     string `xml:"msg"`
@@ -148,13 +149,22 @@ func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
 		return
 	}
 
-	// 🔥 消息去重：生成唯一标识
-	msgID := fmt.Sprintf("%s:%s:%s", msg.UserID, msg.Content.MsgType, msg.Content.Msg)
+	// 🔥 消息去重：使用微信的MsgID（如果有的话）
+	var dedupeKey string
+	if msg.MsgID != "" {
+		// 优先使用微信提供的MsgID
+		dedupeKey = fmt.Sprintf("msg:%s", msg.MsgID)
+	} else {
+		// 如果没有MsgID，只根据用户ID和消息类型去重（不包含内容）
+		// 这样同一用户的不同内容不会被误判为重复
+		dedupeKey = fmt.Sprintf("user:%s:type:%s:time:%d", msg.UserID, msg.Content.MsgType, time.Now().Unix()/10)
+	}
 	
 	// 检查是否正在处理相同消息
-	if _, exists := h.processingMsgs.LoadOrStore(msgID, time.Now()); exists {
+	if _, exists := h.processingMsgs.LoadOrStore(dedupeKey, time.Now()); exists {
 		logger.Info("⚠️ 检测到重复消息，忽略",
 			zap.String("user_id", msg.UserID),
+			zap.String("msg_id", msg.MsgID),
 			zap.String("msg", msg.Content.Msg))
 		// 立即返回成功，避免微信重试
 		c.JSON(http.StatusOK, gin.H{"code": 200})
@@ -167,9 +177,9 @@ func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
 	// 🚀 异步处理消息（在后台执行搜索和转存）
 	go func() {
 		defer func() {
-			// 处理完成后3分钟删除消息ID（防止用户短时间内重复搜索相同内容）
-			time.AfterFunc(3*time.Minute, func() {
-				h.processingMsgs.Delete(msgID)
+			// 处理完成后30秒删除去重key（只防止短时间内的重复提交）
+			time.AfterFunc(30*time.Second, func() {
+				h.processingMsgs.Delete(dedupeKey)
 			})
 		}()
 
