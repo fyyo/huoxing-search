@@ -77,18 +77,23 @@ func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
 		}
 	}
 	
-	if encrypted == "" {
-		logger.Error("缺少encrypted参数")
-		c.JSON(http.StatusOK, gin.H{"code": 200, "message": "缺少encrypted参数"})
-		return
-	}
-
 	// 从数据库获取配置（统一使用 wx_* 前缀）
 	ctx := context.Background()
 	appID, _ := h.configRepo.Get(ctx, "wx_chat_appid")
 	token, _ := h.configRepo.Get(ctx, "wx_chat_token")
 	encodingAESKey, _ := h.configRepo.Get(ctx, "wx_chat_aes_key")
 	systemName, _ := h.configRepo.Get(ctx, "wx_chatbot_name")
+	
+	// 如果encrypted为空（首次接入或测试请求）
+	if encrypted == "" {
+		logger.Info("收到空encrypted请求（可能是首次接入或测试）")
+		// 返回成功，不报错（与PHP版本一致）
+		c.JSON(http.StatusOK, gin.H{
+			"code":    200,
+			"message": "success",
+		})
+		return
+	}
 	
 	if appID == "" || token == "" || encodingAESKey == "" {
 		logger.Error("微信对话平台配置不完整")
