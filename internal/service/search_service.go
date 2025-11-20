@@ -461,7 +461,7 @@ func (s *SearchService) convertSourceToSearchResult(sources []*model.Source) []m
 	return results
 }
 
-// convertPansouResults 转换Pansou搜索结果为xinyue格式
+// convertPansouResults 转换Pansou搜索结果为huoxing格式
 // 策略：从MergedByType中获取结果，这些结果已经按时间排序且来自不同插件
 func (s *SearchService) convertPansouResults(pansouResp pansouModel.SearchResponse, cloudType string, maxCount int) []model.SearchResult {
 	results := make([]model.SearchResult, 0)

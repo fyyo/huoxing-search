@@ -138,7 +138,7 @@ func (c *BaiduClient) getToPdirFid(ctx context.Context, expiredType int) (string
 	}
 	
 	if folderPath == "" {
-		return "xinyue", nil // 默认目录
+		return "huoxing", nil // 默认目录
 	}
 	
 	// ⚠️ 关键修复：移除开头的斜杠（如果有），因为后续会统一添加

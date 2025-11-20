@@ -171,13 +171,15 @@ func (r *configRepository) BatchUpsert(ctx context.Context, configs map[string]s
 			err := tx.Where("name = ?", name).First(&existing).Error
 			
 			if err == gorm.ErrRecordNotFound {
-				// 不存在则创建，设置必要的默认值
+				// 不存在则创建，根据配置名称自动设置分组
+				group := getConfigGroup(name)
+				
 				newConfig := model.Config{
 					Name:        name,
 					Value:       value,
 					Title:       name,  // 标题默认使用name
 					Description: "",    // 描述为空
-					Group:       0,     // 默认分组：基本配置
+					Group:       group, // 根据名称自动识别分组
 					Type:        1,     // 默认类型：文本输入
 					Options:     "",    // 选项为空
 					Sort:        0,     // 默认排序
@@ -213,4 +215,49 @@ func (r *configRepository) BatchUpsert(ctx context.Context, configs map[string]s
 		fmt.Printf("📊 [BatchUpsert] 完成: 创建=%d, 更新=%d, 总数=%d\n", createCount, updateCount, len(configs))
 		return nil
 	})
+}
+
+// getConfigGroup 根据配置名称自动识别分组
+// group 0: 基本配置 (site_*, default_*)
+// group 1: 搜索配置 (max_*, cache_*, ban_*, pansou_*)
+// group 2: 网盘配置 (quark_*, baidu_*, ali_*, uc_*, xunlei_*, Authorization)
+// group 3: 微信配置 (wx_*)
+// group 4: 系统功能 (delete_*)
+func getConfigGroup(name string) int {
+	// 微信配置：wx_ 开头
+	if len(name) >= 3 && name[:3] == "wx_" {
+		return 3
+	}
+	
+	// 网盘配置：各网盘前缀或特殊名称
+	netdiskPrefixes := []string{
+		"quark_", "baidu_", "ali_", "uc_", "xunlei_",
+	}
+	for _, prefix := range netdiskPrefixes {
+		if len(name) >= len(prefix) && name[:len(prefix)] == prefix {
+			return 2
+		}
+	}
+	// 阿里云盘特殊配置名
+	if name == "Authorization" {
+		return 2
+	}
+	
+	// 搜索配置：max_*, cache_*, ban_*, pansou_* 开头
+	searchPrefixes := []string{
+		"max_", "cache_", "ban_", "pansou_",
+	}
+	for _, prefix := range searchPrefixes {
+		if len(name) >= len(prefix) && name[:len(prefix)] == prefix {
+			return 1
+		}
+	}
+	
+	// 系统功能：delete_* 开头
+	if len(name) >= 7 && name[:7] == "delete_" {
+		return 4
+	}
+	
+	// 默认：基本配置
+	return 0
 }

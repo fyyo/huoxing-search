@@ -138,7 +138,7 @@ func (h *WechatHandler) ChatbotCallback(c *gin.Context) {
 	}
 
 	if systemName == "" {
-		systemName = "心悦搜索"
+		systemName = "火星搜索"
 	}
 
 	// 解密消息

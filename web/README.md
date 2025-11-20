@@ -1,4 +1,4 @@
-# Xinyue-Go Web前端（前后端一体化）
+# Huoxing-Go Web前端（前后端一体化）
 
 ## 架构说明
 
@@ -56,7 +56,7 @@ web/
 ### 开发模式
 ```bash
 # 启动Go服务
-cd xinyue-go
+cd huoxing-search
 go run cmd/server/main.go
 
 # 访问

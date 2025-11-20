@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>微信配置 - Xinyue</title>
+    <title>微信配置 - Huoxing</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; }
@@ -62,7 +62,7 @@
 <body>
     <div class="admin-layout">
         <div class="sidebar">
-            <div class="sidebar-header">心悦管理后台</div>
+            <div class="sidebar-header">火星管理后台</div>
             <div class="sidebar-menu" id="sidebarMenu"></div>
         </div>
         
@@ -164,14 +164,14 @@
                         <button class="btn btn-default" onclick="testConfig()">🔍 测试连接</button>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-default" onclick="location.reload()">重置</button>
+                        <button class="btn btn-default" onclick="resetConfig()">🔄 重置配置</button>
                         <button class="btn btn-success" onclick="saveConfig()">💾 保存配置</button>
                     </div>
                 </div>
             </div>
             
             <div class="footer">
-                <span>Copyright © 2025 心悦网盘搜索系统. Powered by Go</span>
+                <span>Copyright © 2025 火星网盘搜索系统. Powered by Go</span>
                 <span id="statusText">就绪</span>
             </div>
         </div>
@@ -254,7 +254,7 @@
                             title: getConfigTitle(key),
                             description: getConfigDescription(key),
                             type: key.includes('welcome') ? 4 : 1,
-                            group: 4
+                            group: 3  // 微信配置固定为 group 3
                         });
                     }
                 });
@@ -355,6 +355,18 @@
                 'wx_chatbot_welcome': '用户首次对话时的欢迎语'
             };
             return descriptions[key] || '';
+        }
+        
+        function resetConfig() {
+            if (confirm('确定要重置当前标签页的配置吗？这将清空所有输入内容。')) {
+                const keys = currentTab === 'official' ? configKeys.official : configKeys.chatbot;
+                keys.forEach(key => {
+                    const input = document.getElementById(key);
+                    if (input) input.value = '';
+                });
+                showAlert('配置已重置', 'success');
+                document.getElementById('statusText').textContent = '已重置';
+            }
         }
         
         window.onload = function() {

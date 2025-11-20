@@ -65,7 +65,7 @@ func runUnifiedMode(installMode bool) {
 		// 安装模式：使用简单配置
 		gin.SetMode(gin.ReleaseMode)
 		fmt.Println("\n===========================================")
-		fmt.Println("  Xinyue-Go 安装向导已启动")
+		fmt.Println("  Huoxing-Go 安装向导已启动")
 		fmt.Println("  请在浏览器中访问: http://localhost:6060/install")
 		fmt.Println("===========================================\n")
 	} else {
@@ -89,7 +89,7 @@ func runUnifiedMode(installMode bool) {
 		}
 		defer logger.Sync()
 
-		logger.Info("Xinyue-Go 启动中...")
+		logger.Info("火星网盘搜索系统启动中...")
 
 		// 初始化数据库
 		if err := database.InitMySQL(&cfg.Database); err != nil {

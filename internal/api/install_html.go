@@ -7,7 +7,7 @@ func getInstallHTML() string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xinyue-Go 系统安装向导</title>
+    <title>Huoxing-Go 系统安装向导</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -159,9 +159,31 @@ func getInstallHTML() string {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Xinyue-Go 系统安装向导</h1>
-            <p>欢迎使用 Xinyue-Go 网盘搜索系统</p>
+            <h1>🚀 Huoxing-Go 系统安装向导</h1>
+            <p>欢迎使用 Huoxing-Go 网盘搜索系统</p>
         </div>
+        
+        <!-- 免责声明 -->
+        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 0;">
+            <h3 style="color: #856404; margin-bottom: 15px; font-size: 18px;">⚠️ 重要声明</h3>
+            <div style="color: #856404; line-height: 1.8; font-size: 14px;">
+                <p style="margin-bottom: 10px;">📌 <strong>本项目仅供技术交流与学习使用</strong>，自身不存储或提供任何资源文件及下载链接。</p>
+                <p style="margin-bottom: 10px;">📌 <strong>请勿将本项目用于任何违法用途</strong>，否则后果自负。</p>
+                <p style="margin-bottom: 10px;">📌 <strong>项目本身不集成任何第三方资源采集源或链接信息</strong>，所有功能需由用户自行配置。</p>
+                <hr style="border: none; border-top: 1px solid #ffc107; margin: 15px 0;">
+                <p style="margin-bottom: 5px; font-weight: bold;">🔒 法律声明与使用协议</p>
+                <p style="margin-bottom: 5px;">使用本项目即表示您同意以下条款：</p>
+                <ol style="margin: 10px 0 10px 20px; padding: 0;">
+                    <li style="margin-bottom: 5px;">本项目为开源项目，仅供技术学习与交流使用；</li>
+                    <li style="margin-bottom: 5px;">项目未集成任何资源文件、下载地址或版权内容；</li>
+                    <li style="margin-bottom: 5px;">项目不提供也不支持任何侵犯版权、传播盗版等非法行为；</li>
+                    <li style="margin-bottom: 5px;">若用户将本项目用于搭建违法网站或传播侵权资源，责任由用户自行承担，与项目作者无关；</li>
+                    <li style="margin-bottom: 5px;">本项目作者不对因使用本项目而产生的任何直接或间接后果承担法律责任；</li>
+                    <li>若您不同意上述条款，请勿下载、使用或传播本项目。</li>
+                </ol>
+            </div>
+        </div>
+        
         <div class="content">
             <!-- 步骤1: 环境检查 -->
             <div class="step active" id="step1">
@@ -197,7 +219,7 @@ func getInstallHTML() string {
                     </div>
                     <div class="form-group">
                         <label>数据库名</label>
-                        <input type="text" name="db_name" value="xinyue" required>
+                        <input type="text" name="db_name" value="huoxing" required>
                         <small>如果数据库不存在将自动创建</small>
                     </div>
                     <div class="form-group">
@@ -214,7 +236,7 @@ func getInstallHTML() string {
                     </div>
                     <div class="form-group">
                         <label>网站名称</label>
-                        <input type="text" name="site_name" value="Xinyue 网盘搜索" required>
+                        <input type="text" name="site_name" value="Huoxing 网盘搜索" required>
                     </div>
                     <div class="form-group">
                         <label>管理员账号</label>

@@ -59,7 +59,7 @@ func (h *FrontendHandler) RegisterRoutes(r *gin.Engine) {
 // Home 首页
 func (h *FrontendHandler) Home(c *gin.Context) {
 	c.HTML(http.StatusOK, "index/home_simple.html", gin.H{
-		"Title": "心悦网盘搜索",
+		"Title": "火星网盘搜索",
 	})
 }
 

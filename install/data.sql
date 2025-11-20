@@ -1,4 +1,4 @@
--- Xinyue-Go 数据库初始化脚本
+-- Huoxing-Go 数据库初始化脚本
 
 -- 管理员表
 CREATE TABLE IF NOT EXISTS `qf_admin` (
@@ -137,9 +137,9 @@ INSERT INTO `qf_source_category` (`name`, `keyword`, `sort`, `is_type`, `status`
 
 -- 插入默认系统配置
 INSERT INTO `qf_conf` (`name`, `value`, `title`, `description`, `group`, `type`, `sort`, `status`, `create_time`, `update_time`) VALUES
-('site_name', 'Xinyue 网盘搜索', '网站名称', '网站的名称', 0, 1, 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-('site_keywords', '网盘搜索,资源搜索,夸克网盘,百度网盘', '网站关键词', 'SEO关键词,用逗号分隔', 0, 1, 2, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-('site_description', 'Xinyue网盘搜索系统 - 支持多网盘资源搜索与转存', '网站描述', 'SEO描述信息', 0, 1, 3, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+('site_name', '火星网盘搜索', '网站名称', '网站的名称', 0, 1, 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+('site_keywords', '火星搜索,网盘搜索,资源搜索,夸克网盘,百度网盘', '网站关键词', 'SEO关键词,用逗号分隔', 0, 1, 2, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+('site_description', '火星网盘搜索系统 - 支持多网盘资源搜索与转存', '网站描述', 'SEO描述信息', 0, 1, 3, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
 ('max_search_results', '5', '最大搜索结果数', '单次搜索返回的最大结果数', 1, 2, 10, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
 ('max_transfer_count', '2', '最大转存数量', '单次转存的最大数量', 1, 2, 11, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
 ('cache_expire', '60', '缓存过期时间', '搜索结果缓存时间(秒)', 1, 2, 12, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
@@ -186,5 +186,10 @@ INSERT INTO `qf_conf` (`name`, `value`, `title`, `description`, `group`, `type`,
 -- 微信配置 - 公众号
 ('wx_official_token', '', '公众号Token', '微信公众号的Token', 3, 1, 80, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
 ('wx_official_appid', '', '公众号AppID', '微信公众号的AppID', 3, 1, 81, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-('wx_official_secret', '', '公众号Secret', '微信公众号的AppSecret', 3, 1, 82, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+('wx_official_secret', '', '公众号Secret', '微信公众号的AppSecret', 3, 1, 82, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+('wx_official_aeskey', '', '公众号EncodingAESKey', '微信公众号的消息加密密钥（可选）', 3, 1, 83, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+
+-- 微信配置 - 对话平台个性化
+('wx_chatbot_name', '火星搜索', '机器人名称', '微信对话平台显示的机器人名称', 3, 1, 84, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+('wx_chatbot_welcome', '', '自定义欢迎语', '用户首次访问时的欢迎消息（留空使用默认）', 3, 1, 85, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
 
