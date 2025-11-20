@@ -5,121 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>系统配置 - Huoxing</title>
+    
+    <!-- 引入公共样式 -->
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-        }
-        
-        .admin-layout { display: flex; height: 100vh; }
-        
-        /* 侧边栏样式 */
-        .sidebar {
-            width: 250px;
-            background: #001529;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-header {
-            padding: 20px;
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-        .sidebar-menu { flex: 1; overflow-y: auto; }
-        .menu-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: rgba(255,255,255,0.65);
-            text-decoration: none;
-        }
-        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .menu-item.active { background: #1890ff; color: #fff; }
-        .menu-group { margin: 10px 0; }
-        .menu-group-title {
-            padding: 10px 20px;
-            color: rgba(255,255,255,0.45);
-            font-size: 12px;
-        }
-        
-        /* 主内容区 */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header {
-            height: 60px;
-            background: #fff;
-            border-bottom: 1px solid #e8e8e8;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .header-title { font-size: 18px; font-weight: bold; }
-        .header-right { display: flex; align-items: center; gap: 15px; }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        .user-info:hover { background: #f0f0f0; }
-        .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #1890ff;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        
-        .content {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        
+        /* 页面特定样式 */
         .config-wrapper {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
         }
         
-        /* 按钮样式 */
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-primary { background: #1890ff; color: #fff; }
-        .btn-primary:hover { background: #40a9ff; }
-        .btn-success { background: #52c41a; color: #fff; }
-        .btn-success:hover { background: #73d13d; }
-        .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; }
-        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* 配置容器 */
         .config-container { background: #fff; border-radius: 4px; overflow: hidden; }
         
-        /* 配置项 */
         .config-item {
             padding: 20px;
             border-bottom: 1px solid #f0f0f0;
@@ -134,10 +34,6 @@
             flex-shrink: 0;
             font-weight: 500;
             color: #333;
-        }
-        .config-label .required {
-            color: #ff4d4f;
-            margin-right: 4px;
         }
         
         .config-input-wrapper {
@@ -160,12 +56,6 @@
             min-height: 80px;
         }
         
-        .config-help {
-            margin-top: 4px;
-            font-size: 12px;
-            color: #999;
-        }
-        
         .config-section {
             background: #fafafa;
             padding: 12px 20px;
@@ -174,7 +64,6 @@
             border-bottom: 1px solid #e8e8e8;
         }
         
-        /* SEO预览样式 */
         .seo-preview {
             margin-top: 20px;
             padding: 20px;
@@ -211,20 +100,6 @@
             font-size: 13px;
             line-height: 1.4;
         }
-        
-        .footer {
-            height: 50px;
-            background: #fff;
-            border-top: 1px solid #e8e8e8;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        
-        .loading { text-align: center; padding: 40px; color: #999; }
         
         .save-bar {
             background: #fff;
@@ -280,36 +155,29 @@
         </div>
     </div>
     
+    <!-- 引入公共JavaScript -->
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/admin-sidebar.js"></script>
+    
     <script>
         let configs = [];
         
         function logout() {
             if (confirm('确定要退出登录吗？')) {
-                localStorage.removeItem('admin_token');
+                API.clearToken();
                 window.location.href = '/admin/login';
             }
         }
         
         async function loadConfigs() {
             try {
-                const token = localStorage.getItem('admin_token');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) {
-                    headers['Authorization'] = 'Bearer ' + token;
-                }
-                
-                const response = await fetch('/api/admin/configs', { headers: headers });
-                const result = await response.json();
+                const result = await API.get('/admin/configs');
                 
                 if (result.code === 200) {
                     // API返回的数据结构是 {list: [...], total: ...}
                     configs = result.data.list || [];
                     renderConfigs();
                     document.getElementById('configCount').textContent = `共 ${configs.length} 项配置`;
-                } else if (result.code === 401) {
-                    alert('登录已过期，请重新登录');
-                    localStorage.removeItem('admin_token');
-                    window.location.href = '/admin/login';
                 } else {
                     throw new Error(result.message || '加载失败');
                 }
@@ -470,13 +338,6 @@
         
         async function saveConfigs() {
             try {
-                const token = localStorage.getItem('admin_token');
-                if (!token) {
-                    alert('请先登录');
-                    window.location.href = '/admin/login';
-                    return;
-                }
-                
                 // 收集所有配置项的值
                 const updates = [];
                 const inputs = document.querySelectorAll('[data-id]');
@@ -490,10 +351,9 @@
                     } else if (input.type !== 'radio') {
                         value = input.value;
                     } else {
-                        return; // 跳过未选中的radio
+                        return;
                     }
                     
-                    // 查找对应的配置项
                     const config = configs.find(c => c.conf_id === confId);
                     if (config && !updates.find(u => u.conf_id === confId)) {
                         updates.push({
@@ -509,25 +369,11 @@
                     return;
                 }
                 
-                // 批量更新
-                const response = await fetch('/api/admin/configs/batch', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ configs: updates })
-                });
-                
-                const result = await response.json();
+                const result = await API.put('/admin/configs/batch', { configs: updates });
                 
                 if (result.code === 200) {
                     alert('保存成功！');
-                    loadConfigs(); // 重新加载
-                } else if (result.code === 401) {
-                    alert('登录已过期，请重新登录');
-                    localStorage.removeItem('admin_token');
-                    window.location.href = '/admin/login';
+                    loadConfigs();
                 } else {
                     throw new Error(result.message || '保存失败');
                 }
@@ -537,12 +383,8 @@
             }
         }
         
-        // 页面加载时加载配置
         loadConfigs();
     </script>
-    
-    <!-- 引入侧边栏JS -->
-    <script src="/static/admin-sidebar.js"></script>
 </body>
 </html>
 {{end}}

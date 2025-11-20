@@ -4,141 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>火星网盘搜索</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .header {
-            background: rgba(255,255,255,0.95);
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo { font-size: 24px; font-weight: 700; color: #667eea; }
-        .nav a {
-            margin-left: 30px;
-            color: #333;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .nav a:hover { color: #667eea; }
-        .container {
-            max-width: 800px;
-            margin: 60px auto;
-            padding: 0 20px;
-        }
-        .search-box {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            text-align: center;
-        }
-        .search-box h1 {
-            font-size: 36px;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        .search-form {
-            margin-bottom: 20px;
-        }
-        .search-input {
-            width: 100%;
-            padding: 15px 20px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .search-input:focus {
-            border-color: #667eea;
-        }
-        .pan-types {
-            margin: 20px 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        .pan-types label {
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: background 0.3s;
-        }
-        .pan-types label:hover {
-            background: #f5f5f5;
-        }
-        .pan-types input[type="radio"] {
-            margin-right: 5px;
-        }
-        .search-btn {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            font-weight: 600;
-            color: white;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        .hot-keywords {
-            margin-top: 20px;
-            color: #666;
-        }
-        .hot-keywords span {
-            display: inline-block;
-            margin: 5px;
-            padding: 5px 12px;
-            background: #f5f5f5;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .hot-keywords span:hover {
-            background: #e0e0e0;
-        }
-        .footer {
-            text-align: center;
-            color: white;
-            padding: 30px 0;
-            margin-top: 60px;
-        }
-        .footer p { margin: 5px 0; opacity: 0.9; }
-    </style>
+    <title>火星网盘搜索 - 聚合多网盘搜索引擎</title>
+    <meta name="keywords" content="网盘搜索,资源搜索,夸克网盘,百度网盘,阿里云盘">
+    <meta name="description" content="火星网盘搜索 - 支持夸克、百度、阿里、UC、迅雷等多个网盘搜索">
+    
+    <!-- 公共样式 -->
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
-<body>
+<body class="gradient-bg">
+    <!-- 头部 -->
     <div class="header">
         <div class="container">
-            <div class="logo">火星网盘搜索</div>
+            <div class="logo">🔥 火星网盘搜索</div>
             <nav class="nav">
                 <a href="/">首页</a>
                 <a href="/search">搜索</a>
-                <a href="/install">安装</a>
-                <a href="/admin/login">管理后台</a>
             </nav>
         </div>
     </div>
 
+    <!-- 主内容 -->
     <div class="container">
         <div class="search-box">
             <h1>🔍 聚合网盘搜索</h1>
@@ -178,23 +64,17 @@
                 
                 <button type="submit" class="search-btn">开始搜索</button>
             </form>
-            
-            <div class="hot-keywords">
-                <strong>热门搜索：</strong>
-                <span onclick="quickSearch('速度与激情')">速度与激情</span>
-                <span onclick="quickSearch('流浪地球')">流浪地球</span>
-                <span onclick="quickSearch('三体')">三体</span>
-                <span onclick="quickSearch('庆余年')">庆余年</span>
-                <span onclick="quickSearch('繁花')">繁花</span>
-            </div>
         </div>
     </div>
 
+    <!-- 页脚 -->
     <div class="footer">
         <p>&copy; 2025 火星网盘搜索. All rights reserved.</p>
         <p>本站仅提供搜索服务，不存储任何资源</p>
     </div>
 
+    <!-- 公共JavaScript -->
+    <script src="/static/js/common.js"></script>
     <script>
         function quickSearch(keyword) {
             document.querySelector('input[name="keyword"]').value = keyword;

@@ -1,0 +1,73 @@
+{{define "admin/layout.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - 火星管理后台</title>
+    
+    <!-- 公共样式 -->
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    
+    <!-- 页面自定义样式 -->
+    {{template "styles" .}}
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">🔥 火星管理后台</div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <!-- 侧边栏菜单将由JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="header-title">{{.PageTitle}}</div>
+                <div class="header-right">
+                    <a href="/" class="btn btn-default" target="_blank">查看网站</a>
+                    <div class="user-info" onclick="handleLogout()">
+                        <div class="avatar">A</div>
+                        <span>管理员</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 内容区 -->
+            <div class="content">
+                {{template "content" .}}
+            </div>
+            
+            <!-- 页脚 -->
+            <div class="footer">
+                Copyright © 2025 火星网盘搜索系统. Powered by Go
+            </div>
+        </div>
+    </div>
+    
+    <!-- 公共JavaScript -->
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/admin-sidebar.js"></script>
+    
+    <!-- 页面自定义脚本 -->
+    {{template "scripts" .}}
+    
+    <script>
+        // 退出登录
+        function handleLogout() {
+            if (confirm('确定要退出登录吗？')) {
+                API.clearToken();
+                window.location.href = '/admin/login';
+            }
+        }
+    </script>
+</body>
+</html>
+{{end}}
+
+{{define "styles"}}{{end}}
+{{define "scripts"}}{{end}}

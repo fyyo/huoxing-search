@@ -4,234 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理员管理 - Huoxing</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-        }
-        
-        .admin-layout { display: flex; height: 100vh; }
-        
-        /* 侧边栏样式 */
-        .sidebar {
-            width: 250px;
-            background: #001529;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-header {
-            padding: 20px;
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-        .sidebar-menu { flex: 1; overflow-y: auto; }
-        .menu-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: rgba(255,255,255,0.65);
-            text-decoration: none;
-        }
-        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .menu-item.active { background: #1890ff; color: #fff; }
-        .menu-group { margin: 10px 0; }
-        .menu-group-title {
-            padding: 10px 20px;
-            color: rgba(255,255,255,0.45);
-            font-size: 12px;
-        }
-        
-        /* 主内容区 */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header {
-            height: 60px;
-            background: #fff;
-            border-bottom: 1px solid #e8e8e8;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .header-title { font-size: 18px; font-weight: bold; }
-        .header-right { display: flex; align-items: center; gap: 15px; }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        .user-info:hover { background: #f0f0f0; }
-        .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #1890ff;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        
-        .content { flex: 1; padding: 20px; overflow-y: auto; }
-        .toolbar {
-            background: #fff;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        /* 按钮样式 */
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-primary { background: #1890ff; color: #fff; }
-        .btn-primary:hover { background: #40a9ff; }
-        .btn-danger { background: #ff4d4f; color: #fff; }
-        .btn-danger:hover { background: #ff7875; }
-        .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; }
-        .btn-default:hover { color: #1890ff; border-color: #1890ff; }
-        .btn-sm { padding: 4px 10px; font-size: 12px; }
-        
-        /* 输入框 */
-        .input {
-            padding: 8px 12px;
-            border: 1px solid #d9d9d9;
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-        }
-        .input:focus { border-color: #1890ff; }
-        
-        /* 表格 */
-        .table-container { background: #fff; border-radius: 4px; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th {
-            background: #fafafa;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
-        tr:hover { background: #fafafa; }
-        
-        .tag {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 2px;
-            font-size: 12px;
-        }
-        .tag-success { background: #f6ffed; color: #52c41a; }
-        .tag-danger { background: #fff1f0; color: #ff4d4f; }
-        
-        .loading { text-align: center; padding: 40px; color: #999; }
-        .empty { text-align: center; padding: 40px; color: #999; }
-        
-        .footer {
-            height: 50px;
-            background: #fff;
-            border-top: 1px solid #e8e8e8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 14px;
-        }
-        
-        /* 弹窗 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.show { display: flex; }
-        .modal-content {
-            background: #fff;
-            border-radius: 4px;
-            width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #e8e8e8;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-title { font-size: 16px; font-weight: bold; }
-        .modal-close {
-            cursor: pointer;
-            font-size: 20px;
-            color: #999;
-            border: none;
-            background: none;
-        }
-        .modal-body { padding: 20px; }
-        .modal-footer {
-            padding: 10px 20px;
-            border-top: 1px solid #e8e8e8;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .form-group { margin-bottom: 16px; }
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .form-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d9d9d9;
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-        }
-        .form-input:focus { border-color: #1890ff; }
-    </style>
+    <title>管理员管理 - Huoxing管理后台</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
 </head>
 <body>
     <div class="admin-layout">
-        <!-- 侧边栏 -->
         <div class="sidebar">
             <div class="sidebar-header">火星管理后台</div>
-            <div class="sidebar-menu" id="sidebarMenu">
-                <!-- 侧边栏菜单由 admin-sidebar.js 动态生成 -->
-            </div>
+            <div class="sidebar-menu" id="sidebarMenu"></div>
         </div>
-        
-        <!-- 主内容区 -->
+
         <div class="main-content">
             <div class="header">
                 <div class="header-title">管理员管理</div>
@@ -243,14 +26,14 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="content">
                 <div class="toolbar">
                     <button class="btn btn-primary" onclick="showAddModal()">➕ 添加管理员</button>
-                    <input type="text" class="input" id="searchInput" placeholder="搜索用户名、昵称或邮箱" style="width: 300px;">
+                    <input type="text" class="form-input" id="searchInput" placeholder="搜索用户名、昵称或邮箱" style="width: 300px;">
                     <button class="btn btn-default" onclick="loadData()">🔍 搜索</button>
                 </div>
-                
+
                 <div class="table-container">
                     <table>
                         <thead>
@@ -270,77 +53,66 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-            
-            <div class="footer">Copyright © 2025 火星网盘搜索系统. Powered by Go</div>
-        </div>
-    </div>
-    
-    <!-- 添加/编辑弹窗 -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modalTitle">添加管理员</div>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="editForm">
-                    <input type="hidden" id="adminId">
-                    <div class="form-group">
-                        <label class="form-label">用户名 *</label>
-                        <input type="text" class="form-input" id="username" required>
+
+                <!-- 添加/编辑弹窗 -->
+                <div id="editModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="modal-title" id="modalTitle">添加管理员</div>
+                            <button class="modal-close" onclick="closeModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editForm">
+                                <input type="hidden" id="adminId">
+                                <div class="form-group">
+                                    <label class="form-label">用户名 *</label>
+                                    <input type="text" class="form-input" id="username" required>
+                                </div>
+                                <div class="form-group" id="passwordGroup">
+                                    <label class="form-label">密码 *</label>
+                                    <input type="password" class="form-input" id="password">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">昵称</label>
+                                    <input type="text" class="form-input" id="nickname">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">邮箱</label>
+                                    <input type="email" class="form-input" id="email">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">手机号</label>
+                                    <input type="tel" class="form-input" id="mobile">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">状态</label>
+                                    <select class="form-select" id="status">
+                                        <option value="1">启用</option>
+                                        <option value="0">禁用</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-default" onclick="closeModal()">取消</button>
+                            <button class="btn btn-primary" onclick="saveAdmin()">保存</button>
+                        </div>
                     </div>
-                    <div class="form-group" id="passwordGroup">
-                        <label class="form-label">密码 *</label>
-                        <input type="password" class="form-input" id="password">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">昵称</label>
-                        <input type="text" class="form-input" id="nickname">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">邮箱</label>
-                        <input type="email" class="form-input" id="email">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">手机号</label>
-                        <input type="tel" class="form-input" id="mobile">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">状态</label>
-                        <select class="form-input" id="status">
-                            <option value="1">启用</option>
-                            <option value="0">禁用</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-default" onclick="closeModal()">取消</button>
-                <button class="btn btn-primary" onclick="saveAdmin()">保存</button>
+                </div>
             </div>
         </div>
     </div>
-    
+
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/admin-sidebar.js"></script>
     <script>
-        function logout() {
-            if (confirm('确定要退出登录吗？')) {
-                localStorage.removeItem('admin_token');
-                window.location.href = '/admin/login';
-            }
-        }
-        
         async function loadData() {
             try {
-                const token = localStorage.getItem('admin_token');
                 const keyword = document.getElementById('searchInput').value;
-                let url = '/api/admin/admins?page=1&page_size=100';
+                let url = '/admin/admins?page=1&page_size=100';
                 if (keyword) url += '&keyword=' + encodeURIComponent(keyword);
                 
-                const response = await fetch(url, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const result = await response.json();
+                const result = await API.get(url);
                 
                 if (result.code === 200) {
                     const list = result.data.items || [];
@@ -370,11 +142,11 @@
                         `;
                     }).join('');
                 } else {
-                    alert('加载失败: ' + result.message);
+                    Utils.showMessage('加载失败: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error('加载失败:', error);
-                alert('加载失败: ' + error.message);
+                Utils.showMessage('加载失败: ' + error.message, 'error');
             }
         }
         
@@ -389,11 +161,7 @@
         
         async function editAdmin(id) {
             try {
-                const token = localStorage.getItem('admin_token');
-                const response = await fetch('/api/admin/admins/' + id, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const result = await response.json();
+                const result = await API.get(`/admin/admins/${id}`);
                 
                 if (result.code === 200) {
                     const admin = result.data;
@@ -408,10 +176,10 @@
                     document.getElementById('password').required = false;
                     document.getElementById('editModal').classList.add('show');
                 } else {
-                    alert('获取信息失败: ' + result.message);
+                    Utils.showMessage('获取信息失败: ' + result.message, 'error');
                 }
             } catch (error) {
-                alert('获取信息失败: ' + error.message);
+                Utils.showMessage('获取信息失败: ' + error.message, 'error');
             }
         }
         
@@ -426,7 +194,7 @@
             };
             
             if (!data.username) {
-                alert('请输入用户名');
+                Utils.showMessage('请输入用户名', 'error');
                 return;
             }
             
@@ -435,33 +203,24 @@
             } else {
                 data.password = document.getElementById('password').value;
                 if (!data.password) {
-                    alert('请输入密码');
+                    Utils.showMessage('请输入密码', 'error');
                     return;
                 }
             }
             
             try {
-                const token = localStorage.getItem('admin_token');
-                const url = id ? '/api/admin/admins/update' : '/api/admin/admins/create';
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify(data)
-                });
+                const url = id ? '/admin/admins/update' : '/admin/admins/create';
+                const result = await API.post(url, data);
                 
-                const result = await response.json();
                 if (result.code === 200) {
-                    alert(id ? '修改成功' : '添加成功');
+                    Utils.showMessage(id ? '修改成功' : '添加成功', 'success');
                     closeModal();
                     loadData();
                 } else {
-                    alert((id ? '修改' : '添加') + '失败: ' + result.message);
+                    Utils.showMessage((id ? '修改' : '添加') + '失败: ' + result.message, 'error');
                 }
             } catch (error) {
-                alert((id ? '修改' : '添加') + '失败: ' + error.message);
+                Utils.showMessage((id ? '修改' : '添加') + '失败: ' + error.message, 'error');
             }
         }
         
@@ -469,30 +228,28 @@
             if (!confirm('确定要删除这个管理员吗？')) return;
             
             try {
-                const token = localStorage.getItem('admin_token');
-                const response = await fetch('/api/admin/admins/delete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ ids: [id] })
-                });
+                const result = await API.post('/admin/admins/delete', { ids: [id] });
                 
-                const result = await response.json();
                 if (result.code === 200) {
-                    alert('删除成功');
+                    Utils.showMessage('删除成功', 'success');
                     loadData();
                 } else {
-                    alert('删除失败: ' + result.message);
+                    Utils.showMessage('删除失败: ' + result.message, 'error');
                 }
             } catch (error) {
-                alert('删除失败: ' + error.message);
+                Utils.showMessage('删除失败: ' + error.message, 'error');
             }
         }
         
         function closeModal() {
             document.getElementById('editModal').classList.remove('show');
+        }
+
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('admin_token');
+                window.location.href = '/admin/login';
+            }
         }
         
         document.getElementById('editModal').addEventListener('click', function(e) {
@@ -501,9 +258,6 @@
         
         loadData();
     </script>
-    
-    <!-- 引入侧边栏JS -->
-    <script src="/static/admin-sidebar.js"></script>
 </body>
 </html>
 {{end}}

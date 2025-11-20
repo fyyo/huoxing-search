@@ -1,4 +1,3 @@
-
 # 🔥 火星搜索 (Huoxing Search)
 
 > **版本**: v1.0  
@@ -53,7 +52,15 @@
 
 ## 📦 快速开始
 
-### 方式一：Docker部署（强烈推荐）⭐
+### 方式一：使用预构建镜像（最简单）🚀
+
+直接使用已构建好的Docker镜像，无需本地编译：
+
+```bash
+# 1. 拉取镜像
+docker pull ghcr.io/fyyo/huoxing-search:latest
+
+### 方式二：Docker本地构建⭐
 
 ```bash
 # 1. 克隆项目
@@ -108,7 +115,7 @@ huoxing-search/
 
 ---
 
-### 方式二：手动编译
+### 方式三：手动编译
 
 ```bash
 # 1. 安装Go 1.21+
@@ -324,4 +331,3 @@ huoxing-search/
 ---
 
 ## ⚠️ 免责声明
-

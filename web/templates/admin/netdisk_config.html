@@ -4,118 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}} - Huoxing管理后台</title>
+    <title>网盘配置 - Huoxing管理后台</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* 侧边栏样式 */
-        .sidebar {
-            width: 250px;
-            background: #001529;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        .sidebar-header {
-            padding: 20px;
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-        .sidebar-menu { flex: 1; overflow-y: auto; }
-        .menu-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: background 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: rgba(255,255,255,0.65);
-            text-decoration: none;
-        }
-        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .menu-item.active { background: #1890ff; color: #fff; }
-        .menu-group { margin: 10px 0; }
-        .menu-group-title {
-            padding: 10px 20px;
-            color: rgba(255,255,255,0.45);
-            font-size: 12px;
-        }
-
-        /* 主内容区 */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header {
-            height: 60px;
-            background: #fff;
-            border-bottom: 1px solid #e8e8e8;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .header-title { font-size: 18px; font-weight: bold; }
-        .header-right { display: flex; align-items: center; gap: 15px; }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        .user-info:hover { background: #f0f0f0; }
-        .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #1890ff;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .content {
-            padding: 24px;
-            flex: 1;
-        }
-
-        .page-header {
-            background: white;
-            padding: 16px 24px;
-            margin-bottom: 16px;
-            border-radius: 4px;
-        }
-
-        .page-title {
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .page-description {
-            color: #666;
-            font-size: 14px;
-        }
 
         .netdisk-tabs {
             display: flex;
@@ -296,10 +188,9 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="admin-layout">
         <div class="sidebar">
             <div class="sidebar-header">火星管理后台</div>
-            <!-- 使用统一的动态侧边栏 -->
             <div class="sidebar-menu" id="sidebarMenu"></div>
         </div>
 
@@ -316,10 +207,6 @@
             </div>
 
             <div class="content">
-                <div class="page-header">
-                    <h1 class="page-title">网盘配置</h1>
-                    <div class="page-description">配置各网盘的Cookie和Token信息，用于转存功能</div>
-                </div>
 
                 <div id="alert" class="alert"></div>
 
@@ -686,8 +573,8 @@
         }
     </script>
     
-    <!-- 引入侧边栏JS -->
-    <script src="/static/admin-sidebar.js"></script>
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/admin-sidebar.js"></script>
 </body>
 </html>
 {{end}}
