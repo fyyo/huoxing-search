@@ -58,8 +58,8 @@
 
 ```bash
 # 1. 拉取镜像
-docker pull ghcr.io/fyyo/huoxing-search:latest
-
+docker pull docker.io/yjc562/huoxing-search:latest  
+```
 ### 方式二：Docker本地构建⭐
 
 ```bash
